@@ -2,7 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.config.RsaKeyGenerator;
 import com.example.demo.config.VerifyProperties;
-import com.example.demo.model.Request;
+import com.example.demo.model.KeyPair;
 import com.example.demo.util.ByteUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +66,7 @@ public class JwtSerivce {
 		return payload;
 	}
 
-	public String createSignature(String payload, Request keyPair)
+	public String createSignature(String payload, KeyPair keyPair)
 			throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
 			InvalidKeySpecException, BadPaddingException, InvalidKeyException {
 		String signature = rsaKeyGenerator.encryptPrvRSA(payload, keyPair.getPrivateKey());

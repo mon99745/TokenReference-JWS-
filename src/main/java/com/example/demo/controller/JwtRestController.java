@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Request;
+import com.example.demo.model.KeyPair;
 import com.example.demo.service.JwtSerivce;
 import com.example.demo.config.RsaKeyGenerator;
 import com.example.demo.util.JsonUtil;
@@ -59,7 +59,7 @@ public class JwtRestController {
 	 */
 	@PostMapping("createSignDocument")
 	@Operation(summary = "1. 서명 문서 생성")
-	public String createReqMsg(Request keyPair, @RequestBody String claim) throws IOException, NoSuchPaddingException,
+	public String createReqMsg(KeyPair keyPair, @RequestBody String claim) throws IOException, NoSuchPaddingException,
 			IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException,
 			InvalidKeyException, JSONException {
 
@@ -95,7 +95,7 @@ public class JwtRestController {
 	}
 
 	/**
-	 * JWS 토큰 검증
+	 * 서명 문서 검증
 	 *
 	 * @param document
 	 * @return
