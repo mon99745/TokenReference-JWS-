@@ -35,15 +35,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-@Api(tags = JwsRestController.TAG)
+@Api(tags = JwtRestController.TAG)
 @RestController
-public class JwsRestController {
+public class JwtRestController {
 
 	public static final String TAG = "JWS Manager API";
 	protected final VerifyProperties verifyProperties;
 	protected final RsaKeyGenerator rsaKeyGenerator;
 
-	public JwsRestController(VerifyProperties verifyProperties) {
+	public JwtRestController(VerifyProperties verifyProperties) {
 		this.verifyProperties = verifyProperties;
 		this.rsaKeyGenerator = new RsaKeyGenerator(verifyProperties);
 	}
