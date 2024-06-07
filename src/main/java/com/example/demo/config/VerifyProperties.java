@@ -20,7 +20,7 @@ public class VerifyProperties {
 	 * 키 페어 경로
 	 */
 	@Value("${keyPair.path}")
-	protected String path = "C:/git-personal/demo/files/";
+	protected String path = "./files/";
 
 	/**
 	 * 키 페어 생성 알고리즘

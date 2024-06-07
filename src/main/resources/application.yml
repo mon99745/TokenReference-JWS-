@@ -1,8 +1,10 @@
+### 서버 관리
 server:
-### ?? WAS ??
+### 내장 WAS 관리
   port: 8080
 
+### 키 관리
 keyPair:
-  path: C:/git-personal/demo/files/
+  path: ./files/
   algorithm: RSA
   keySize: 2048
