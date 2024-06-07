@@ -15,7 +15,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Request {
-
 	/**
 	 * 공개키
 	 */

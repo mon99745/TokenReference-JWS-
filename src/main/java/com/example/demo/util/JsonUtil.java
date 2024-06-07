@@ -255,7 +255,6 @@ public class JsonUtil {
 				.orElse("");
 	}
 
-
 	/**
 	 * 해당 객체를 포맷팅된 JSON 문자열로 변환
 	 *
@@ -280,8 +279,6 @@ public class JsonUtil {
 		}
 	}
 
-
-
 	/**
 	 * 해당 객체를 복사하여 원한는 클래스 타입의 객체로 변환
 	 *
@@ -296,8 +293,6 @@ public class JsonUtil {
 			throw new CommonException(String.format("value: %s valueType: %s", value, valueType), e);
 		}
 	}
-
-///////////////////////////////////////////////////////////////////////////
 
 	private static class JsonNodeConverter
 			implements JsonSerializer<JsonNode> {

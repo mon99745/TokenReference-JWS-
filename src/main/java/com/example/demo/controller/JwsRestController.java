@@ -50,7 +50,7 @@ public class JwsRestController {
 
 	@GetMapping("createKeyPair")
 	@Operation(summary = "키 페어 생성")
-	public Map<String, Object> createKeyPair(){
+	public Map<String, Object> createKeyPair() {
 		Map<String, Object> keyMap = rsaKeyGenerator.createKey();
 		Map<String, Object> strKeymap = new HashMap<>();
 
@@ -67,6 +67,7 @@ public class JwsRestController {
 
 	/**
 	 * JWS 토큰 발행
+	 *
 	 * @param claim
 	 * @return
 	 * @throws IOException
@@ -88,7 +89,7 @@ public class JwsRestController {
 		String payload = "";
 		String signature = "";
 
-		if(keyPair.getPublicKey() == null || keyPair.getPrivateKey() == null) {
+		if (keyPair.getPublicKey() == null || keyPair.getPrivateKey() == null) {
 			keyPair.setPublicKey(Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded()));
 			keyPair.setPrivateKey(Base58.encode(rsaKeyGenerator.getPrivateKey().getEncoded()));
 		}
@@ -138,6 +139,7 @@ public class JwsRestController {
 
 	/**
 	 * JWS 토큰 검증
+	 *
 	 * @param reqMsg
 	 * @return
 	 * @throws NoSuchPaddingException
@@ -194,7 +196,7 @@ public class JwsRestController {
 		byte[] signatureHexData = Base58.decode(signature);
 
 		// 해시 검증을 통해 위변조 검증
-		if(Arrays.equals(claimHexData,signatureHexData)){
+		if (Arrays.equals(claimHexData, signatureHexData)) {
 			String successMessage = "검증 성공하였습니다.";
 			return new ResponseEntity<>(successMessage, HttpStatus.OK);
 		} else {
@@ -203,11 +205,9 @@ public class JwsRestController {
 		}
 	}
 
-
-//========================================================================================================
-
 	/**
 	 * PK base58 암/복호화
+	 *
 	 * @return
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
@@ -238,10 +238,11 @@ public class JwsRestController {
 
 	/**
 	 * JSON 데이터 파싱
+	 *
 	 * @return
 	 */
 //	@GetMapping("json")
-	public String readJson(){
+	public String readJson() {
 
 		// JSON 파일 경로 설정
 		String filePath = "example/claim.json";
@@ -264,6 +265,7 @@ public class JwsRestController {
 	/**
 	 * JSON 데이터를 Base58 암호화
 	 * JWT - Header
+	 *
 	 * @param strData
 	 * @return
 	 * @throws IOException
@@ -280,6 +282,7 @@ public class JwsRestController {
 	/**
 	 * JSON 데이터를 개인키로 암호화
 	 * for 서명
+	 *
 	 * @param strData
 	 * @return
 	 * @throws NoSuchPaddingException
@@ -302,6 +305,7 @@ public class JwsRestController {
 
 	/**
 	 * Header 데이터를 개인키로 암호화
+	 *
 	 * @param header
 	 * @return
 	 * @throws NoSuchPaddingException
@@ -323,13 +327,14 @@ public class JwsRestController {
 
 	/**
 	 * JWT 토큰 발행 테스트
+	 *
 	 * @param header
 	 * @param payload
 	 * @param signature
 	 * @return
 	 */
 //	@PostMapping("jws")
-	public String jws(String header, String payload, String signature){
+	public String jws(String header, String payload, String signature) {
 		String jws = header + "." + payload + "." + signature;
 		System.out.println("jws = " + jws);
 		return jws;

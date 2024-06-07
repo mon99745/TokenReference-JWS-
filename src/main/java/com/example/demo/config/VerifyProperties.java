@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class VerifyProperties {
-
 	/**
 	 * 키 페어 경로
 	 */
@@ -40,5 +39,4 @@ public class VerifyProperties {
 	@Getter
 	@Setter
 	private static VerifyProperties instance = new VerifyProperties();
-
 }

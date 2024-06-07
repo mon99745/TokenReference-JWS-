@@ -9,9 +9,9 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 
 public class ByteUtil {
-
 	/**
 	 * 문자열을 바이트 코드로 변환
+	 *
 	 * @param str
 	 * @return
 	 * @throws IOException
@@ -23,6 +23,7 @@ public class ByteUtil {
 
 	/**
 	 * 바이트 코드르르 문자열로 복원
+	 *
 	 * @param bytes
 	 * @return
 	 * @throws IOException
@@ -35,6 +36,7 @@ public class ByteUtil {
 	/**
 	 * 객체를 바이트 배열로 변환
 	 * Serialization
+	 *
 	 * @param obj
 	 * @return
 	 * @throws IOException
@@ -50,6 +52,7 @@ public class ByteUtil {
 	/**
 	 * 바이트 배열을 객체로 복원
 	 * Deserialization
+	 *
 	 * @param bytes
 	 * @return
 	 * @throws IOException

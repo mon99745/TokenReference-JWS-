@@ -1,7 +1,6 @@
 package com.example.demo.exception;
 
-public class CommonException extends RuntimeException{
-
+public class CommonException extends RuntimeException {
 	public CommonException(String message, Throwable cause) {
 		this(null, message, cause);
 	}
