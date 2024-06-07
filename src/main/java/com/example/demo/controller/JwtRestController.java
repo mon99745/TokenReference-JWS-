@@ -43,6 +43,7 @@ public class JwtRestController {
 		return jwtSerivce.createKeyPair(keyPair);
 	}
 
+
 	/**
 	 * 서명 문서 생성
 	 *
@@ -58,8 +59,8 @@ public class JwtRestController {
 	 * @throws JSONException
 	 */
 	@PostMapping("createSignDocument")
-	@Operation(summary = "1. 서명 문서 생성")
-	public String createReqMsg(KeyPair keyPair, @RequestBody String claim) throws IOException, NoSuchPaddingException,
+	@Operation(summary = "3. 서명 문서 생성")
+	public String createSignDocument(KeyPair keyPair, @RequestBody String claim) throws IOException, NoSuchPaddingException,
 			IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException,
 			InvalidKeyException, JSONException {
 
@@ -109,8 +110,8 @@ public class JwtRestController {
 	 * @throws JSONException
 	 */
 	@PostMapping("verifySignDocument")
-	@Operation(summary = "2. 서명 문서 검증")
-	public ResponseEntity<Object> verifyReqMsg(@RequestBody String document) throws NoSuchPaddingException,
+	@Operation(summary = "4. 서명 문서 검증")
+	public ResponseEntity<Object> verifySignDocument(@RequestBody String document) throws NoSuchPaddingException,
 			IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, IOException,
 			BadPaddingException, InvalidKeyException, JSONException {
 		JSONObject doc = new JSONObject(document);
