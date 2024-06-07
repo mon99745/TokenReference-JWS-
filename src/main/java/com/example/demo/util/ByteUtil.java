@@ -22,15 +22,33 @@ public class ByteUtil {
 	}
 
 	/**
-	 * 바이트 코드르르 문자열로 복원
+	 * 바이트 코드를 UTF-8 문자열로 변환
 	 *
 	 * @param bytes
 	 * @return
 	 * @throws IOException
 	 */
-	public static String bytesToString(byte[] bytes) throws IOException {
+	public static String bytesToUtfString(byte[] bytes) throws IOException {
 		String strData = new String(bytes, "UTF-8");
 		return strData;
+	}
+
+	/**
+	 * 바이트를 16진수 문자열로 변환
+	 *
+	 * @param hashData
+	 * @return
+	 */
+	public static StringBuilder bytesToHexString(byte[] hashData) {
+		StringBuilder hexString = new StringBuilder();
+		for (byte b : hashData) {
+			String hex = Integer.toHexString(0xff & b);
+			if (hex.length() == 1) {
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
+		return hexString;
 	}
 
 	/**
@@ -50,7 +68,7 @@ public class ByteUtil {
 	}
 
 	/**
-	 * 바이트 배열을 객체로 복원
+	 * 바이트 배열을 객체로 변환
 	 * Deserialization
 	 *
 	 * @param bytes

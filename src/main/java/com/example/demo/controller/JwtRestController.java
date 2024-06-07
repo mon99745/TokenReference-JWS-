@@ -32,7 +32,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RestController
 public class JwtRestController {
-
 	public static final String TAG = "JWS Manager API";
 	protected final RsaKeyGenerator rsaKeyGenerator;
 	protected final JwtSerivce jwtSerivce;
@@ -89,7 +88,7 @@ public class JwtRestController {
 		log.info("signature = " + signature);
 
 		String jws = header + "." + payload + "." + signature;
-		System.out.println("jws = " + jws);
+		log.info("jws = " + jws);
 		jsonObject.put("jws", jws);
 
 		return JsonUtil.toPrettyString(jsonObject.toString());
@@ -111,9 +110,9 @@ public class JwtRestController {
 	 */
 	@PostMapping("verifySignDocument")
 	@Operation(summary = "2. 서명 문서 검증")
-	public ResponseEntity<Object> verifyReqMsg(@RequestBody String document) throws NoSuchPaddingException, IllegalBlockSizeException,
-			NoSuchAlgorithmException, InvalidKeySpecException, IOException, BadPaddingException, InvalidKeyException, JSONException {
-
+	public ResponseEntity<Object> verifyReqMsg(@RequestBody String document) throws NoSuchPaddingException,
+			IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, IOException,
+			BadPaddingException, InvalidKeyException, JSONException {
 		JSONObject doc = new JSONObject(document);
 		return jwtSerivce.verifyDocument(doc);
 	}
