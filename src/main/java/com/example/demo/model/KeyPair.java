@@ -14,8 +14,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Request {
-
+public class KeyPair {
 	/**
 	 * 공개키
 	 */

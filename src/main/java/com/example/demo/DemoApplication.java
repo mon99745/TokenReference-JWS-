@@ -8,9 +8,7 @@ import org.springframework.context.annotation.Import;
 @SpringBootApplication
 @Import(VerifyProperties.class)
 public class DemoApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
 	}
-
 }

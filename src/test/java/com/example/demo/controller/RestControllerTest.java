@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(JwsRestController.class)
+@WebMvcTest(JwtRestController.class)
 class RestControllerTest {
 	private static final MockHttpSession SESSION = new MockHttpSession();
 

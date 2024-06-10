@@ -1,10 +1,10 @@
 ### 서버 관리
 server:
 ### 내장 WAS 관리
-  port: 8080
+#  port: 8080
 
 ### 키 관리
 keyPair:
-  path: ./files/
-  algorithm: RSA
-  keySize: 2048
+#  path: ./files/
+#  algorithm: RSA
+#  keySize: 2048
