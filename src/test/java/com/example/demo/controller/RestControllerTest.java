@@ -1,10 +1,12 @@
 package com.example.demo.controller;
 
 
+import com.example.demo.annotation.ControllerTest;
+import com.example.demo.model.KeyPair;
 import com.example.demo.util.JsonUtil;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -16,9 +18,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(JwtRestController.class)
+@ControllerTest
+@DisplayName("토큰 발행 및 검증 API 테스트")
 class RestControllerTest {
 	private static final MockHttpSession SESSION = new MockHttpSession();
+
+	@Autowired
+	private MockMvc mvc;
 
 	/**
 	 * claim
@@ -60,7 +66,7 @@ class RestControllerTest {
 			"ck6LvkNnWVJQYmpUEARMUc8SR9VXCP9smX3dEr4GTamZkN8KSa1jHFFg";
 
 	/**
-	 * JWS 가 발급된 요청문
+	 * JWS가 발행된 서명 문서
 	 */
 	private static String reqMsg = "{\n" +
 			"  \"credentialSubject\" : {\n" +
@@ -73,17 +79,25 @@ class RestControllerTest {
 			"fWhhm4Xn8i2xLu+fKOCj2AQEPziBpgoqpeD2OcvtRZRwyEVLsRX7xGmCx18VKUTc3pxJSmxBdFRhJYYys7TrfoK+C44s0DLPzMiFqlr" +
 			"G4RIx4NoQa0Yoc3gKYU+prnJrVQwpM/N/27s7HnsoIKqSvRjfXSDqzPhidFgmClC/alaoXi5GnSSvdcc1wAp15O/f+SVFreIvZ7lBn0" +
 			"dOJCXo2YKXfycLhWCzPQZyg7OF+TYB31ET/OxRM8OLMCRw==\",\n" +
-			"  \"publicKey\" : \""+ publicKey +"\",\n" +
+			"  \"publicKey\" : \"" + publicKey + "\",\n" +
 			"  \"type\" : \"JWS\",\n" +
 			"  \"alg\" : \"SHA256\"\n" +
 			"}";
-	@Autowired
-	private MockMvc mvc;
+
+	/**
+	 * 발행 토큰
+	 */
+	private static String jwt = "wtEhRDrZpioF.29Le3YBWnhCnozVCv9Abj2AwT5b8eWkZDivMEBw3eXgbPL13HgvJZyRJWzrHkbfovcEv4B" +
+			"DGaiZePdDRXjpN9F9m.OxJt6IAaxD67lH3ANBlJKkypXxDjhBD8j0bjrkKEKft200sJDAXTk2JT0DOr6T4s+OUOnKlWc8UpfsaxbX5h" +
+			"RXWnNSY1gbh/qAKMNnoZcx5s6gHjDMYUgQp6ANhMszVPHUUeHSzfGNbg7fLk3WdTWafG2bBtzHEbbYNh1u8PPv0iF0g5cNDUOsdOtHS" +
+			"CqbZ9fUk3mMPIxSkZtoDmUTsiIy2x/NyPZtRfxTkNX/12tieiwFw6S65EZvinC9kpPxAUMaNZGtF6c7vADLwQpDuxEPlh7h3kWPRtgJ" +
+			"JcAU3zzZRmFwgKhwcDueLlvGHdUzlziX/42kusJVz1p8UuAo9EXw==";
 
 	@Test
-	void A_createKeyPair() throws Exception{
+	@DisplayName("공개키/개인키 생성 테스트")
+	void t01createKeyPair() throws Exception {
 		mvc.perform(get("/createKeyPair")
-				.session(SESSION))
+						.session(SESSION))
 				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$").isNotEmpty())
@@ -92,117 +106,55 @@ class RestControllerTest {
 					Map<String, Object> map = JsonUtil.readValueMap(responseContent);
 					publicKey = (String) map.get("publicKey");
 					privateKey = (String) map.get("privateKey");
-					// 다른 키에 대한 처리 추가 가능
 				});
-
 	}
+
 	@Test
-	void B_createReqMsg() throws Exception {
-		mvc.perform(post("/createReqMsg")
+	@DisplayName("토큰(JWT) 발행 테스트")
+	void t02createToken() throws Exception {
+		mvc.perform(post("/createToken")
+						.content(claim)
+						.session(SESSION))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andDo(r -> jwt = r.getResponse().getContentAsString());
+	}
+
+	@Test
+	@DisplayName("토큰(JWT) 검증 테스트")
+	void t03createSignDocument() throws Exception {
+		mvc.perform(post("/verifyToken")
+						.content(jwt)
+						.session(SESSION))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$").isNotEmpty());
+	}
+
+	@Test
+	@DisplayName("서명 문서 발행 테스트")
+	void t04createReqMsg() throws Exception {
+		mvc.perform(post("/createSignDocument")
+						.content(String.valueOf(KeyPair.builder()
+								.publicKey(publicKey)
+								.privateKey(privateKey)
+								.build()))
 						.content(claim)
 						.session(SESSION))
 				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$").isNotEmpty())
 				.andDo(r -> reqMsg = r.getResponse().getContentAsString());
-
 	}
 
 	@Test
-	void C_verifyJws() throws Exception {
-		mvc.perform(post("/verifyReqMsg")
+	@DisplayName("서명 문서 검증 테스트")
+	void t05verifySignDocument() throws Exception {
+		mvc.perform(post("/verifySignDocument")
 						.content(reqMsg)
 						.session(SESSION))
 				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$").isNotEmpty());
-	}
-
-
-
-
-	/**
-	 * Header
-	 */
-	private static String encData = "5wX24gGwoapzavxLxduxLckpH5Wx1BLrdgoebHf9FJRQrYQ1QVCXGzm9w6tLfPgeWQcqEFEmqCj4Jsv6g";
-
-	/**
-	 * Signature
-	 */
-	private static String signData = "aLJON4wPZ+79ePLBe6CIDT5KPsIEVeTKvhAstUJLE9YrBEBL+4/4ZKehZJwvGZWuxjnaugQ05w" +
-			"09pvmUrlL0MM9COB1IiMT2I8STmpRGHLo3pnrjh+An9PSIaRFstT4EnrWxNQuvn6eEIttbwxLeKurPo5TpnLegOwWR5MJzimNtQ" +
-			"M+KKkaFlsc8ADj+e6033ZAdNClTHDe/jZXmtGDei/kcDA4Ofw3jN/539LyrnEvJ+leSNFtTi+xY0+7aL5zZxz+e4iIET9T2z5Z5" +
-			"NckiF8r/+du7gBjbRjZiN+I1W2OMSV5XGu5FvjWQ9JnzCjjNPs35PJtoXaJcblNBbzmLrA==";
-
-	/**
-	 * JWS
-	 */
-	private static String jws = "5wX24gGwoapzavxLxduxLckpH5Wx1BLrdgoebHf9FJRQrYQ1QVCXGzm9w6tLfPgeWQcqEFEmqCj4Jsv6" +
-			"g..aLJON4wPZ+79ePLBe6CIDT5KPsIEVeTKvhAstUJLE9YrBEBL+4/4ZKehZJwvGZWuxjnaugQ05w09pvmUrlL0MM9COB1IiMT2I" +
-			"8STmpRGHLo3pnrjh+An9PSIaRFstT4EnrWxNQuvn6eEIttbwxLeKurPo5TpnLegOwWR5MJzimNtQM+KKkaFlsc8ADj+e6033ZAdN" +
-			"ClTHDe/jZXmtGDei/kcDA4Ofw3jN/539LyrnEvJ+leSNFtTi+xY0+7aL5zZxz+e4iIET9T2z5Z5NckiF8r/+du7gBjbRjZiN+I1W" +
-			"2OMSV5XGu5FvjWQ9JnzCjjNPs35PJtoXaJcblNBbzmLrA==";
-
-//	@Test
-	void A_base58() throws Exception {
-		mvc.perform(get("/base58/key")
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$").isNotEmpty());
-	}
-
-//	@Test
-	void B_readJson() throws Exception {
-		mvc.perform(get("/json")
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$").isNotEmpty());
-	}
-
-//	@Test
-	void C_readJson() throws Exception {
-		mvc.perform(post("/base58/json")
-						.content(claim)
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$").isNotEmpty())
-				.andDo(r -> encData = r.getResponse().getContentAsString());
-	}
-
-//	@Test
-	void D_encryptPrv() throws Exception {
-		mvc.perform(post("/encryptPrv")
-						.content(claim)
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$").isNotEmpty());
-	}
-
-//	@Test
-	void E_signature() throws Exception {
-		mvc.perform(post("/signature")
-						.param("header",claim)
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$").isNotEmpty())
-				.andDo(r -> signData = r.getResponse().getContentAsString());
-	}
-
-//	@Test
-	void F_jws() throws Exception {
-		mvc.perform(post("/jws")
-						.param("header", encData)
-						.param("payload", "")
-						.param("signature", signData)
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$").isNotEmpty())
-				.andDo(r -> jws = r.getResponse().getContentAsString());
 	}
 }

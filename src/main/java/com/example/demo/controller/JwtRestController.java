@@ -36,6 +36,11 @@ public class JwtRestController {
 	protected final RsaKeyGenerator rsaKeyGenerator;
 	protected final JwtSerivce jwtSerivce;
 
+	/**
+	 * 공개키/비밀키 생성
+	 *
+	 * @return
+	 */
 	@GetMapping("createKeyPair")
 	@Operation(summary = "키 페어 생성")
 	public Map<String, Object> createKeyPair() {
@@ -43,9 +48,80 @@ public class JwtRestController {
 		return jwtSerivce.createKeyPair(keyPair);
 	}
 
+	/**
+	 * 토큰 발행
+	 *
+	 * @param claim
+	 * @return
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
+	 * @throws NoSuchPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws BadPaddingException
+	 * @throws InvalidKeyException
+	 */
+	@PostMapping("createToken")
+	@Operation(summary = "1. 토큰(JWT) 발행")
+	public String createToken(@RequestBody String claim) throws IOException, NoSuchAlgorithmException,
+			InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException,
+			InvalidKeyException {
+		JSONObject jsonObject = new JSONObject();
+
+		jsonObject.put("type", "JWS");
+		jsonObject.put("alg", "SHA256");
+		jsonObject.put("credentialSubject", new JSONObject(claim));
+
+		// Header 생성
+		String header = jwtSerivce.createHeader(jsonObject);
+		log.info("header = " + header);
+
+		// Payload 생성
+		String payload = jwtSerivce.createPayload(jsonObject);
+		log.info("payload = " + payload);
+
+		// Signature 생성
+		KeyPair keyPair = KeyPair.builder()
+				.publicKey(Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded()))
+				.privateKey(Base58.encode(rsaKeyGenerator.getPrivateKey().getEncoded()))
+				.build();
+
+		String signature = jwtSerivce.createSignatureForJwt(header, payload, keyPair);
+		log.info("signature = " + signature);
+
+		String jwt = header + "." + payload + "." + signature;
+		log.info("jwt = " + jwt);
+
+		return jwt;
+	}
 
 	/**
-	 * 서명 문서 생성
+	 * 토큰 검증
+	 *
+	 * @param token
+	 * @return
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
+	 * @throws NoSuchPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws BadPaddingException
+	 * @throws InvalidKeyException
+	 */
+	@PostMapping("verifyToken")
+	@Operation(summary = "2. 토큰(JWT) 검증")
+	public ResponseEntity<Object> verifyToken(@RequestBody String token) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+		KeyPair keyPair = KeyPair.builder()
+				.publicKey(Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded()))
+				.privateKey(Base58.encode(rsaKeyGenerator.getPrivateKey().getEncoded()))
+				.build();
+
+		return jwtSerivce.verifyToken(token, keyPair);
+	}
+
+	/**
+	 * 서명 문서 발행
 	 *
 	 * @param claim
 	 * @return
@@ -59,7 +135,7 @@ public class JwtRestController {
 	 * @throws JSONException
 	 */
 	@PostMapping("createSignDocument")
-	@Operation(summary = "3. 서명 문서 생성")
+	@Operation(summary = "3. 서명 문서 발행")
 	public String createSignDocument(KeyPair keyPair, @RequestBody String claim) throws IOException, NoSuchPaddingException,
 			IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException,
 			InvalidKeyException, JSONException {

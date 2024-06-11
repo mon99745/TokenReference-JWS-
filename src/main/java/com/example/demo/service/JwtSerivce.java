@@ -74,6 +74,47 @@ public class JwtSerivce {
 		return signature;
 	}
 
+	public String createSignatureForJwt(String header, String payload, KeyPair keyPair)
+			throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
+			InvalidKeySpecException, BadPaddingException, InvalidKeyException {
+		String strData = header + payload;
+		String signature = rsaKeyGenerator.encryptPrvRSA(strData, keyPair.getPrivateKey());
+
+		return signature;
+	}
+
+	public ResponseEntity<Object> verifyToken(String token, KeyPair keyPair) throws NoSuchAlgorithmException, IOException,
+			NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, BadPaddingException,
+			InvalidKeyException {
+		String header = "";
+		String payload = "";
+		String signature = "";
+
+		String[] splitArray = token.split("\\.");
+		for (int i = 0; i < splitArray.length; i++) {
+			if (i == 0) {
+				header = splitArray[i];
+			} else if (i == 1) {
+				payload = splitArray[i];
+			} else if (i == 2) {
+				signature = splitArray[i];
+			}
+		}
+
+		String strData = header + payload;
+		// Signature
+		signature = rsaKeyGenerator.decryptPubRSA(signature, keyPair.getPublicKey());
+
+		// 해시 검증을 통해 위변조 검증
+		if (strData.equals(signature)) {
+			String successMessage = "검증 성공하였습니다.";
+			return new ResponseEntity<>(successMessage, HttpStatus.OK);
+		} else {
+			String errorMessage = "검증 실패하였습니다.";
+			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+		}
+	}
+
 	public ResponseEntity<Object> verifyDocument(JSONObject document) throws NoSuchAlgorithmException, IOException,
 			NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, BadPaddingException,
 			InvalidKeyException {
