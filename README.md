@@ -8,6 +8,7 @@
 - [v1.0.0](./RELEASENOTE.md#v100-2024-01-30-)
 
 ## 기능 요약
-* 토큰 발행
-* 토큰 검증
-  
+### 토큰 발행
+![](src/main/resources/static/image/createToken.png)
+### 토큰 검증
+![](src/main/resources/static/image/verifyToken.png)
