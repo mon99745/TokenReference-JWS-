@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Token;
 import com.example.demo.service.TokenSerivce;
 import com.example.demo.config.RsaKeyGenerator;
 import com.example.demo.util.JsonUtil;
@@ -53,18 +54,20 @@ public class TokenRestController {
 	public String createToken(@RequestBody String claim) throws IOException, NoSuchAlgorithmException,
 			InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException,
 			InvalidKeyException {
-		JSONObject jsonObject = new JSONObject();
+		Token.Header headerInfo = Token.Header.builder()
+				.typ("JWT")
+				.alg("SHA256").build();
 
-		jsonObject.put("typ", "JWT");
-		jsonObject.put("alg", "SHA256");
-		jsonObject.put("credentialSubject", new JSONObject(claim));
+		Token.Payload payloadInfo = Token.Payload.builder()
+				.credentialSubject(new JSONObject(claim))
+				.build();
 
 		// Header 생성
-		String header = tokenSerivce.createHeader(jsonObject);
+		String header = tokenSerivce.createHeader(headerInfo);
 		log.info("header = " + header);
 
 		// Payload 생성
-		String payload = tokenSerivce.createPayload(jsonObject);
+		String payload = tokenSerivce.createPayload(payloadInfo);
 		log.info("payload = " + payload);
 
 		// Signature 생성

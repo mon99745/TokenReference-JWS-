@@ -32,29 +32,29 @@ public class TokenSerivce {
 	protected final RsaKeyGenerator rsaKeyGenerator;
 	protected final VerifyProperties verifyProperties;
 
-	public String createHeader(JSONObject jsonObject) throws IOException {
-		String typ = jsonObject.optString("typ");
-		String alg = jsonObject.optString("alg");
+	public String createHeader(Token.Header header) throws IOException {
+		String typ = header.getTyp();
+		String alg = header.getAlg();
 		if (Objects.isNull(typ) || typ.isEmpty()
 				|| Objects.isNull(alg) || alg.isEmpty()) {
 			throw new RuntimeException("Header Info is null or empty");
 		}
 
 		byte[] byteHeaderData = ByteUtil.stringToBytes(typ + alg);
-		String header = Base58.encode(byteHeaderData);
+		String encHeader = Base58.encode(byteHeaderData);
 
-		return header;
+		return encHeader;
 	}
 
-	public String createPayload(JSONObject jsonObject) throws IOException {
-		String credentialSubject = jsonObject.optString("credentialSubject");
+	public String createPayload(Token.Payload payload) throws IOException {
+		String credentialSubject = String.valueOf(payload.getCredentialSubject());
 		if (Objects.isNull(credentialSubject) || credentialSubject.isEmpty()) {
 			throw new RuntimeException("credentialSubject is null or empty");
 		}
 		byte[] bytePayloadData = ByteUtil.stringToBytes(credentialSubject);
-		String payload = Base58.encode(bytePayloadData);
+		String encPayload = Base58.encode(bytePayloadData);
 
-		return payload;
+		return encPayload;
 	}
 
 	public String createSignature(String payload, KeyPair keyPair)

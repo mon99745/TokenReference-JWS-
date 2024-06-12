@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.config.RsaKeyGenerator;
 import com.example.demo.model.KeyPair;
+import com.example.demo.model.Token;
 import com.example.demo.service.TokenSerivce;
 import com.example.demo.util.JsonUtil;
 import io.swagger.annotations.Api;
@@ -58,24 +59,26 @@ public class SignDocRestController {
 			NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException,
 			BadPaddingException, InvalidKeyException, JSONException {
 
+		// TODO: 공개키로 암호화/ 개인키로 복호화 (부인방지)
 		if (keyPair.getPublicKey() == null || keyPair.getPrivateKey() == null) {
 			keyPair.setPublicKey(Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded()));
 			keyPair.setPrivateKey(Base58.encode(rsaKeyGenerator.getPrivateKey().getEncoded()));
 		}
 
-		JSONObject jsonObject = new JSONObject();
+		Token.Header headerInfo = Token.Header.builder()
+				.typ("JWT")
+				.alg("SHA256").build();
 
-		jsonObject.put("typ", "JWS");
-		jsonObject.put("alg", "SHA256");
-		jsonObject.put("credentialSubject", new JSONObject(claim));
-		jsonObject.put("publicKey", keyPair.getPublicKey());
+		Token.Payload payloadInfo = Token.Payload.builder()
+				.credentialSubject(new JSONObject(claim))
+				.build();
 
 		// Header 생성
-		String header = tokenSerivce.createHeader(jsonObject);
+		String header = tokenSerivce.createHeader(headerInfo);
 		log.info("header = " + header);
 
 		// Payload 생성
-		String payload = tokenSerivce.createPayload(jsonObject);
+		String payload = tokenSerivce.createPayload(payloadInfo);
 		log.info("payload = " + payload);
 
 		// Signature 생성
@@ -84,7 +87,15 @@ public class SignDocRestController {
 
 		String jws = tokenSerivce.createJws(header, payload, signature);
 		log.info("jws = " + jws);
+
+		// TODO : SignDocument 모델 생성 후 Reflection 사용으로 필드 값을 모델에 대입하도록
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("typ", headerInfo.getTyp());
+		jsonObject.put("alg", headerInfo.getAlg());
+		jsonObject.put("credentialSubject", payloadInfo.getCredentialSubject());
+		jsonObject.put("publicKey", keyPair.getPublicKey());
 		jsonObject.put("jws", jws);
+
 
 		return JsonUtil.toPrettyString(jsonObject.toString());
 	}
