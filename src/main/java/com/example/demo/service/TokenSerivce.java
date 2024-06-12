@@ -23,6 +23,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
+import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,19 +33,26 @@ public class TokenSerivce {
 	protected final VerifyProperties verifyProperties;
 
 	public String createHeader(JSONObject jsonObject) throws IOException {
-		byte[] byteHeaderData = ByteUtil.stringToBytes(
-				jsonObject.get("type").toString() + jsonObject.get("alg").toString());
+		String typ = jsonObject.optString("typ");
+		String alg = jsonObject.optString("alg");
+		if (Objects.isNull(typ) || typ.isEmpty()
+				|| Objects.isNull(alg) || alg.isEmpty()) {
+			throw new RuntimeException("Header Info is null or empty");
+		}
+
+		byte[] byteHeaderData = ByteUtil.stringToBytes(typ + alg);
 		String header = Base58.encode(byteHeaderData);
 
 		return header;
 	}
 
-	public String createPayload(JSONObject jsonObject) throws IOException, NoSuchAlgorithmException {
-		MessageDigest digest = MessageDigest.getInstance("SHA-256");
-		byte[] bytePayloadData = ByteUtil.stringToBytes(jsonObject.get("credentialSubject").toString());
-		byte[] hashData = digest.digest(bytePayloadData);
-		byte[] claimHexData = ByteUtil.stringToBytes(ByteUtil.bytesToHexString(hashData).toString());
-		String payload = Base58.encode(claimHexData);
+	public String createPayload(JSONObject jsonObject) throws IOException {
+		String credentialSubject = jsonObject.optString("credentialSubject");
+		if (Objects.isNull(credentialSubject) || credentialSubject.isEmpty()) {
+			throw new RuntimeException("credentialSubject is null or empty");
+		}
+		byte[] bytePayloadData = ByteUtil.stringToBytes(credentialSubject);
+		String payload = Base58.encode(bytePayloadData);
 
 		return payload;
 	}
@@ -98,9 +106,12 @@ public class TokenSerivce {
 			InvalidKeyException {
 		MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-		byte[] byteData = ByteUtil.stringToBytes(document.get("credentialSubject").toString());
-		byte[] hashData = digest.digest(byteData);
-		byte[] claimHexData = ByteUtil.stringToBytes(ByteUtil.bytesToHexString(hashData).toString());
+		String credentialSubject = document.optString("credentialSubject");
+		if (Objects.isNull(credentialSubject) || credentialSubject.isEmpty()) {
+			throw new RuntimeException("credentialSubject is null or empty");
+		}
+
+		byte[] claimByteData = ByteUtil.stringToBytes(credentialSubject);
 
 		// Token Object Parsing
 		Token tokenObject = parseToken(document.getString("jws"));
@@ -108,16 +119,28 @@ public class TokenSerivce {
 		// Signature
 		String publickey = document.getString("publicKey");
 		String signature = rsaKeyGenerator.decryptPubRSA(tokenObject.getSignature(), publickey);
-		byte[] signatureHexData = Base58.decode(signature);
+		byte[] signatureByteData = Base58.decode(signature);
 
 		// 해시 검증을 통해 위변조 검증
-		if (Arrays.equals(claimHexData, signatureHexData)) {
+		if (Arrays.equals(claimByteData, signatureByteData)) {
 			String successMessage = "검증 성공하였습니다.";
 			return new ResponseEntity<>(successMessage, HttpStatus.OK);
 		} else {
 			String errorMessage = "검증 실패하였습니다.";
 			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	public JSONObject extractCredentialSubject(String token) throws IOException {
+		Token tokenObject = parseToken(token);
+
+		byte[] decodedBytes = Base58.decode(tokenObject.getPayload());
+		String credentialSubject = ByteUtil.bytesToUtfString(decodedBytes);
+		if (Objects.isNull(credentialSubject) || credentialSubject.isEmpty()) {
+			throw new RuntimeException("Extracted credentialSubject is null or empty");
+		}
+
+		return new JSONObject(credentialSubject);
 	}
 
 	public Token parseToken(String token) {

@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.service.TokenSerivce;
 import com.example.demo.config.RsaKeyGenerator;
+import com.example.demo.util.JsonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class TokenRestController {
 			InvalidKeyException {
 		JSONObject jsonObject = new JSONObject();
 
-		jsonObject.put("type", "JWS");
+		jsonObject.put("typ", "JWT");
 		jsonObject.put("alg", "SHA256");
 		jsonObject.put("credentialSubject", new JSONObject(claim));
 
@@ -97,5 +98,19 @@ public class TokenRestController {
 			BadPaddingException, InvalidKeyException {
 		String privateKey = Base58.encode(rsaKeyGenerator.getPrivateKey().getEncoded());
 		return tokenSerivce.verifyToken(token, privateKey);
+	}
+
+	/**
+	 * 토큰에서 클레임 추출
+	 *
+	 * @param token
+	 * @return
+	 * @throws IOException
+	 */
+	@PostMapping("extractClaim")
+	@Operation(summary = "3. 토큰(JWT)에서 클레임 추출")
+	public String extractClaim(@RequestBody String token) throws IOException {
+		JSONObject claim = tokenSerivce.extractCredentialSubject(token);
+		return JsonUtil.toPrettyString(claim.toString());
 	}
 }

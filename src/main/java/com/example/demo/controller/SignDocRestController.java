@@ -65,7 +65,7 @@ public class SignDocRestController {
 
 		JSONObject jsonObject = new JSONObject();
 
-		jsonObject.put("type", "JWS");
+		jsonObject.put("typ", "JWS");
 		jsonObject.put("alg", "SHA256");
 		jsonObject.put("credentialSubject", new JSONObject(claim));
 		jsonObject.put("publicKey", keyPair.getPublicKey());
