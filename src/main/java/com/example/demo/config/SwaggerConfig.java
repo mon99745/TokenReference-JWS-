@@ -1,6 +1,8 @@
 package com.example.demo.config;
 
-import com.example.demo.controller.JwtRestController;
+import com.example.demo.controller.TokenRestController;
+import com.example.demo.controller.KeyPairRestController;
+import com.example.demo.controller.SignDocRestController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +23,10 @@ public class SwaggerConfig {
 		return new Docket(DocumentationType.OAS_30)
 				.useDefaultResponseMessages(true) // Swagger 에서 제공해주는 기본 응답 코드
 				.apiInfo(apiInfo())
-				.tags(new Tag(JwtRestController.TAG, "JWT 관리하는 API", 100))
+				.tags(
+						new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),
+						new Tag(TokenRestController.TAG, "토큰(JWT) 관리 API", 200),
+						new Tag(SignDocRestController.TAG, "서명 문서(Signature Document) 관리 API", 300))
 				.select()
 				.apis(RequestHandlerSelectors.basePackage("com.example.demo.controller"))
 				.build();

@@ -20,33 +20,15 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class JwtSerivce {
+public class TokenSerivce {
 	protected final RsaKeyGenerator rsaKeyGenerator;
 	protected final VerifyProperties verifyProperties;
-
-	public Map<String, Object> createKeyPair(Map<String, Object> keyPair) {
-		Map<String, Object> strKeymap = new HashMap<>();
-
-		PublicKey publicKey = (PublicKey) keyPair.get("PublicKey");
-		PrivateKey privateKey = (PrivateKey) keyPair.get("PrivateKey");
-
-		String strPublicKey = Base58.encode(publicKey.getEncoded());
-		String strPrivateKey = Base58.encode(privateKey.getEncoded());
-
-		strKeymap.put("publicKey", strPublicKey);
-		strKeymap.put("privateKey", strPrivateKey);
-		return strKeymap;
-	}
 
 	public String createHeader(JSONObject jsonObject) throws IOException {
 		byte[] byteHeaderData = ByteUtil.stringToBytes(
@@ -74,16 +56,24 @@ public class JwtSerivce {
 		return signature;
 	}
 
-	public String createSignatureForJwt(String header, String payload, KeyPair keyPair)
+	public String createSignatureForJwt(String header, String payload, String publicKey)
 			throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
 			InvalidKeySpecException, BadPaddingException, InvalidKeyException {
 		String strData = header + payload;
-		String signature = rsaKeyGenerator.encryptPrvRSA(strData, keyPair.getPrivateKey());
+		String signature = rsaKeyGenerator.encryptPubRSA(strData, publicKey);
 
 		return signature;
 	}
 
-	public ResponseEntity<Object> verifyToken(String token, KeyPair keyPair) throws NoSuchAlgorithmException, IOException,
+	public String createJwt(String header, String payload, String signature) {
+		return header + "." + payload + "." + signature;
+	}
+
+	public String createJws(String header, String payload, String signature) {
+		return header + "." + payload + "." + signature;
+	}
+
+	public ResponseEntity<Object> verifyToken(String token, String privateKey) throws NoSuchAlgorithmException, IOException,
 			NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, BadPaddingException,
 			InvalidKeyException {
 		String header = "";
@@ -101,12 +91,11 @@ public class JwtSerivce {
 			}
 		}
 
-		String strData = header + payload;
-		// Signature
-		signature = rsaKeyGenerator.decryptPubRSA(signature, keyPair.getPublicKey());
+		// Decrypt Signature
+		signature = rsaKeyGenerator.decryptPrvRSA(signature, privateKey);
 
 		// 해시 검증을 통해 위변조 검증
-		if (strData.equals(signature)) {
+		if (signature.equals(header + payload)) {
 			String successMessage = "검증 성공하였습니다.";
 			return new ResponseEntity<>(successMessage, HttpStatus.OK);
 		} else {

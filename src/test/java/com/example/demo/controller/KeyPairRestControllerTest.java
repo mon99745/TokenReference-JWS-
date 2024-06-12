@@ -1,8 +1,6 @@
 package com.example.demo.controller;
 
-
 import com.example.demo.annotation.ControllerTest;
-import com.example.demo.model.KeyPair;
 import com.example.demo.util.JsonUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,29 +10,19 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Map;
 
-import static com.example.demo.controller.JwtRestController.PATH;
+import static com.example.demo.controller.TokenRestController.PATH;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ControllerTest
-@DisplayName("토큰 발행 및 검증 API 테스트")
-class JwtRestControllerTest {
+@DisplayName("키쌍 관리 API 테스트")
+class KeyPairRestControllerTest {
 	private static final MockHttpSession SESSION = new MockHttpSession();
 
 	@Autowired
 	private MockMvc mvc;
-
-	/**
-	 * claim
-	 */
-	private static String claim = "{\n" +
-			"  \"uniqueId\": \"1000\",\n" +
-			"  \"name\" : \"test\",\n" +
-			"  \"num\" : \"10\"\n" +
-			"}";
 
 	/**
 	 * 공개키
@@ -66,34 +54,6 @@ class JwtRestControllerTest {
 			"v2CNK1SY8xmpymJ2mp6HwpiXwPrMDPhPtTLtdzNatJJGDpqq5WRq97XpPGecJxHc3KjQ29LwaHsmY8yg4KDemMbySeKeiYaSUEToLN" +
 			"ck6LvkNnWVJQYmpUEARMUc8SR9VXCP9smX3dEr4GTamZkN8KSa1jHFFg";
 
-	/**
-	 * JWS가 발행된 서명 문서
-	 */
-	private static String reqMsg = "{\n" +
-			"  \"credentialSubject\" : {\n" +
-			"    \"num\" : \"10\",\n" +
-			"    \"name\" : \"test\",\n" +
-			"    \"uniqueId\" : \"1000\"\n" +
-			"  },\n" +
-			"  \"jws\" : \"wtEhRDrZpioF.29Le3YBWnhCnozVCv9Abj2AwT5b8eWkZDivMEBw3eXgbPL13HgvJZyRJWzrHkbfovcEv4BDGaiZe" +
-			"PdDRXjpN9F9m.BSrzR+ruhAnzdWkIBehK4bpteDunn3r0R5IujFgZfQVUwPOsbTcwKInrI/GY3XRECcyV55wCLXc7ubTLAOqIeqYesF" +
-			"fWhhm4Xn8i2xLu+fKOCj2AQEPziBpgoqpeD2OcvtRZRwyEVLsRX7xGmCx18VKUTc3pxJSmxBdFRhJYYys7TrfoK+C44s0DLPzMiFqlr" +
-			"G4RIx4NoQa0Yoc3gKYU+prnJrVQwpM/N/27s7HnsoIKqSvRjfXSDqzPhidFgmClC/alaoXi5GnSSvdcc1wAp15O/f+SVFreIvZ7lBn0" +
-			"dOJCXo2YKXfycLhWCzPQZyg7OF+TYB31ET/OxRM8OLMCRw==\",\n" +
-			"  \"publicKey\" : \"" + publicKey + "\",\n" +
-			"  \"type\" : \"JWS\",\n" +
-			"  \"alg\" : \"SHA256\"\n" +
-			"}";
-
-	/**
-	 * 발행 토큰
-	 */
-	private static String jwt = "wtEhRDrZpioF.29Le3YBWnhCnozVCv9Abj2AwT5b8eWkZDivMEBw3eXgbPL13HgvJZyRJWzrHkbfovcEv4B" +
-			"DGaiZePdDRXjpN9F9m.OxJt6IAaxD67lH3ANBlJKkypXxDjhBD8j0bjrkKEKft200sJDAXTk2JT0DOr6T4s+OUOnKlWc8UpfsaxbX5h" +
-			"RXWnNSY1gbh/qAKMNnoZcx5s6gHjDMYUgQp6ANhMszVPHUUeHSzfGNbg7fLk3WdTWafG2bBtzHEbbYNh1u8PPv0iF0g5cNDUOsdOtHS" +
-			"CqbZ9fUk3mMPIxSkZtoDmUTsiIy2x/NyPZtRfxTkNX/12tieiwFw6S65EZvinC9kpPxAUMaNZGtF6c7vADLwQpDuxEPlh7h3kWPRtgJ" +
-			"JcAU3zzZRmFwgKhwcDueLlvGHdUzlziX/42kusJVz1p8UuAo9EXw==";
-
 	@Test
 	@DisplayName("공개키/개인키 생성 테스트")
 	void t01createKeyPair() throws Exception {
@@ -108,54 +68,5 @@ class JwtRestControllerTest {
 					publicKey = (String) map.get("publicKey");
 					privateKey = (String) map.get("privateKey");
 				});
-	}
-
-	@Test
-	@DisplayName("토큰(JWT) 발행 테스트")
-	void t02createToken() throws Exception {
-		mvc.perform(post(PATH + "/createToken")
-						.content(claim)
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andDo(r -> jwt = r.getResponse().getContentAsString());
-	}
-
-	@Test
-	@DisplayName("토큰(JWT) 검증 테스트")
-	void t03createSignDocument() throws Exception {
-		mvc.perform(post(PATH + "/verifyToken")
-						.content(jwt)
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$").isNotEmpty());
-	}
-
-	@Test
-	@DisplayName("서명 문서 발행 테스트")
-	void t04createReqMsg() throws Exception {
-		mvc.perform(post(PATH + "/createSignDocument")
-						.content(String.valueOf(KeyPair.builder()
-								.publicKey(publicKey)
-								.privateKey(privateKey)
-								.build()))
-						.content(claim)
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$").isNotEmpty())
-				.andDo(r -> reqMsg = r.getResponse().getContentAsString());
-	}
-
-	@Test
-	@DisplayName("서명 문서 검증 테스트")
-	void t05verifySignDocument() throws Exception {
-		mvc.perform(post(PATH + "/verifySignDocument")
-						.content(reqMsg)
-						.session(SESSION))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$").isNotEmpty());
 	}
 }

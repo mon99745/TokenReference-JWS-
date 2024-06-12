@@ -124,7 +124,7 @@ public class RsaKeyGenerator implements InitializingBean {
 			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(verifyProperties.getAlgorithm());
 
 			// 키페어 생성 시 사용할 키파라미터 설정 (여기서는 기본값 사용)
-			keyPairGenerator.initialize(verifyProperties.getKeySize()); // 키파라미터에 따라 키크기가 다를 수 있습니다.
+			keyPairGenerator.initialize(verifyProperties.getKeySize());
 
 			// 키페어 생성
 			KeyPair keyPair = keyPairGenerator.genKeyPair();
@@ -192,6 +192,35 @@ public class RsaKeyGenerator implements InitializingBean {
 	}
 
 	/**
+	 * public 키로 암호화
+	 */
+	public String encryptPubRSA(String plainText, String publicKey) throws NoSuchAlgorithmException,
+			InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException {
+		PublicKey pubKey = getPublicKey(publicKey);
+		Cipher cipher = Cipher.getInstance("RSA");
+		cipher.init(Cipher.ENCRYPT_MODE, pubKey);
+		byte[] bytePlain = cipher.doFinal(plainText.getBytes());
+		String encrypted = Base64.getEncoder().encodeToString(bytePlain);
+		return encrypted;
+	}
+
+	/**
+	 * private 키로 복호화
+	 */
+	public String decryptPrvRSA(String encrypted, String privateKey) throws NoSuchAlgorithmException,
+			InvalidKeySpecException, IOException, InvalidKeyException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException {
+		PrivateKey prvKey = getPrivateKey(privateKey);
+		Cipher cipher2 = Cipher.getInstance("RSA");
+		byte[] byteEncrypted = Base64.getDecoder().decode(encrypted.getBytes());
+		cipher2.init(Cipher.DECRYPT_MODE, prvKey);
+		byte[] bytePlain = cipher2.doFinal(byteEncrypted);
+		String decrypted = new String(bytePlain, "utf-8");
+		return decrypted;
+	}
+
+	/**
 	 * private 키로 암호화
 	 */
 	public String encryptPrvRSA(String plainText, String privateKey) throws NoSuchAlgorithmException,
@@ -209,8 +238,8 @@ public class RsaKeyGenerator implements InitializingBean {
 	 * public 키로 복호화
 	 */
 	public String decryptPubRSA(String encrypted, String publicKey) throws NoSuchAlgorithmException,
-			InvalidKeySpecException,IOException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException,
-			BadPaddingException {
+			InvalidKeySpecException, IOException, InvalidKeyException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException {
 
 		PublicKey pubKey = getPublicKey(publicKey);
 		Cipher cipher2 = Cipher.getInstance("RSA");
