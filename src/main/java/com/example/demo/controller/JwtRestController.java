@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.crypto.BadPaddingException;
@@ -31,8 +32,10 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
+@RequestMapping(JwtRestController.PATH)
 public class JwtRestController {
 	public static final String TAG = "JWS Manager API";
+	public static final String PATH = "/api/v1";
 	protected final RsaKeyGenerator rsaKeyGenerator;
 	protected final JwtSerivce jwtSerivce;
 

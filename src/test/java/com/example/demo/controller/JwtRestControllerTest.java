@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Map;
 
+import static com.example.demo.controller.JwtRestController.PATH;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -20,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ControllerTest
 @DisplayName("토큰 발행 및 검증 API 테스트")
-class RestControllerTest {
+class JwtRestControllerTest {
 	private static final MockHttpSession SESSION = new MockHttpSession();
 
 	@Autowired
@@ -96,7 +97,7 @@ class RestControllerTest {
 	@Test
 	@DisplayName("공개키/개인키 생성 테스트")
 	void t01createKeyPair() throws Exception {
-		mvc.perform(get("/createKeyPair")
+		mvc.perform(get(PATH + "/createKeyPair")
 						.session(SESSION))
 				.andDo(print())
 				.andExpect(status().isOk())
@@ -112,7 +113,7 @@ class RestControllerTest {
 	@Test
 	@DisplayName("토큰(JWT) 발행 테스트")
 	void t02createToken() throws Exception {
-		mvc.perform(post("/createToken")
+		mvc.perform(post(PATH + "/createToken")
 						.content(claim)
 						.session(SESSION))
 				.andDo(print())
@@ -123,7 +124,7 @@ class RestControllerTest {
 	@Test
 	@DisplayName("토큰(JWT) 검증 테스트")
 	void t03createSignDocument() throws Exception {
-		mvc.perform(post("/verifyToken")
+		mvc.perform(post(PATH + "/verifyToken")
 						.content(jwt)
 						.session(SESSION))
 				.andDo(print())
@@ -134,7 +135,7 @@ class RestControllerTest {
 	@Test
 	@DisplayName("서명 문서 발행 테스트")
 	void t04createReqMsg() throws Exception {
-		mvc.perform(post("/createSignDocument")
+		mvc.perform(post(PATH + "/createSignDocument")
 						.content(String.valueOf(KeyPair.builder()
 								.publicKey(publicKey)
 								.privateKey(privateKey)
@@ -150,7 +151,7 @@ class RestControllerTest {
 	@Test
 	@DisplayName("서명 문서 검증 테스트")
 	void t05verifySignDocument() throws Exception {
-		mvc.perform(post("/verifySignDocument")
+		mvc.perform(post(PATH + "/verifySignDocument")
 						.content(reqMsg)
 						.session(SESSION))
 				.andDo(print())
