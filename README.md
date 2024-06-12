@@ -1,6 +1,7 @@
-# Json Web Token, JwtsReference
-이 프로젝트는 `JwtsProvider` 역할 수행의 **참고자료로 활용하는 것을 목적으로 작업한 결과물**이며, \
-  <u>개발의 생산성과 편의성을 증대하고</u>, 프로젝트의 소스와 설정 파일의 규격을 통일하여 <u>코드의 품질과 가독성 향상</u>하기 위한 목표로 추진한다.
+# Json Web Token, JwtReference
+이 프로젝트는 `io.jsonwebtoken:jjwt-api` 라이브러리를 대체하여 `JwtProvider` 역할을 수행하는 목적으로 작성된 결과물이며, \
+Json Web Token을 커스텀 발행 및 검증하여 관련 카테고리 개발의 시간 비용을 절감하고, 프로젝트의 소스와 설정 파일의 규격을 통일하여 코드의 품질과 가독성 향상하기 위한 목표로 증가 시키기 위한 목표로 추진한다.
+
 
 
 ## Release
