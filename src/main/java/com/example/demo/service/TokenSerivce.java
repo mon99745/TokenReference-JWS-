@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.config.RsaKeyGenerator;
 import com.example.demo.config.VerifyProperties;
 import com.example.demo.model.KeyPair;
+import com.example.demo.model.Token;
 import com.example.demo.util.ByteUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,29 +74,17 @@ public class TokenSerivce {
 		return header + "." + payload + "." + signature;
 	}
 
-	public ResponseEntity<Object> verifyToken(String token, String privateKey) throws NoSuchAlgorithmException, IOException,
-			NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, BadPaddingException,
-			InvalidKeyException {
-		String header = "";
-		String payload = "";
-		String signature = "";
-
-		String[] splitArray = token.split("\\.");
-		for (int i = 0; i < splitArray.length; i++) {
-			if (i == 0) {
-				header = splitArray[i];
-			} else if (i == 1) {
-				payload = splitArray[i];
-			} else if (i == 2) {
-				signature = splitArray[i];
-			}
-		}
+	public ResponseEntity<Object> verifyToken(String token, String privateKey) throws NoSuchAlgorithmException,
+			IOException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException,
+			BadPaddingException, InvalidKeyException {
+		// Token Object Parsing
+		Token tokenObject = parseToken(token);
 
 		// Decrypt Signature
-		signature = rsaKeyGenerator.decryptPrvRSA(signature, privateKey);
+		String signature = rsaKeyGenerator.decryptPrvRSA(tokenObject.getSignature(), privateKey);
 
 		// 해시 검증을 통해 위변조 검증
-		if (signature.equals(header + payload)) {
+		if (signature.equals(tokenObject.getHeader() + tokenObject.getPayload())) {
 			String successMessage = "검증 성공하였습니다.";
 			return new ResponseEntity<>(successMessage, HttpStatus.OK);
 		} else {
@@ -107,30 +96,18 @@ public class TokenSerivce {
 	public ResponseEntity<Object> verifyDocument(JSONObject document) throws NoSuchAlgorithmException, IOException,
 			NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, BadPaddingException,
 			InvalidKeyException {
-		String header = "";
-		String payload = "";
-		String signature = "";
-
 		MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
 		byte[] byteData = ByteUtil.stringToBytes(document.get("credentialSubject").toString());
 		byte[] hashData = digest.digest(byteData);
 		byte[] claimHexData = ByteUtil.stringToBytes(ByteUtil.bytesToHexString(hashData).toString());
 
-		String[] splitArray = document.getString("jws").split("\\.");
-		for (int i = 0; i < splitArray.length; i++) {
-			if (i == 0) {
-				header = splitArray[i];
-			} else if (i == 1) {
-				payload = splitArray[i];
-			} else if (i == 2) {
-				signature = splitArray[i];
-			}
-		}
+		// Token Object Parsing
+		Token tokenObject = parseToken(document.getString("jws"));
 
 		// Signature
 		String publickey = document.getString("publicKey");
-		signature = rsaKeyGenerator.decryptPubRSA(signature, publickey);
+		String signature = rsaKeyGenerator.decryptPubRSA(tokenObject.getSignature(), publickey);
 		byte[] signatureHexData = Base58.decode(signature);
 
 		// 해시 검증을 통해 위변조 검증
@@ -141,5 +118,24 @@ public class TokenSerivce {
 			String errorMessage = "검증 실패하였습니다.";
 			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	public Token parseToken(String token) {
+		String[] splitArray = token.split("\\.");
+		String header = null;
+		String payload = null;
+		String signature = null;
+
+		for (int i = 0; i < splitArray.length; i++) {
+			if (i == 0) {
+				header = splitArray[i];
+			} else if (i == 1) {
+				payload = splitArray[i];
+			} else if (i == 2) {
+				signature = splitArray[i];
+			}
+		}
+
+		return new Token(header, payload, signature);
 	}
 }

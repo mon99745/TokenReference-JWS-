@@ -10,7 +10,7 @@
 ## 기능 소개
 ### 1. 토큰 발행
 #### 1-1) 호출 방식 
-메소드명 : api/v1/createToken
+**메소드명 : api/v1/createToken**
 
 | Request Type | Value  | Description |
 |--------------|--------|-------------|
@@ -35,7 +35,7 @@
 
 ### 2. 토큰 검증
 #### 2-1) 호출 방식
-메소드명 : api/v1/verifyToken
+**메소드명 : api/v1/verifyToken**
 
 | Request Type | Value  | Description |
 |--------------|--------|-------------|
