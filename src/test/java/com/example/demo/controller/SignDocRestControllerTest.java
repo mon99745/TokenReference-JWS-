@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import com.example.demo.annotation.ControllerTest;
-import com.example.demo.model.KeyPair;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +51,7 @@ class SignDocRestControllerTest {
 			"jqiDYkpxhL7kgETbbUpKRsFo4ZpvSSpXJzuvQrPXdBpTxLcHtzcSCPgeryamVvWW4CPu9NvoVR9VTmogA7QLHTgzYaXfcCyVngn5qv" +
 			"Nn8NuJCC8zjqfcvvMJo6fhBXybEaod6sUNB1J5nTiBbGSxLbkDnyhpZ4XpcQLZ4e9q1MYyuzmEPZTarTksRsRLXqNbXfLHDibq3b1u" +
 			"K2X41TkBi3jmzXgsmVB7M567xAqSMkbRbqr2yZBg47QrTgqMogkSauAcVASptoqWpvgE7zGroBSaaAMeHvufGwPPq1x5M6oHueXv4A" +
-			"TXNSKMaHw4caFyw4VvfvuoQ9VjSKGFWCurp7bqNhjbJDeH4GFN6CEzheHZoCXEQ6AErnsgnU9Eb4LbXkwUdNdBYCfa6XjuwXrq1FsG" +
+			"TXNSKMaHw4caFyw4VvfvuoQ9VjSKGFWCurp7bqNhjbJDeH4GFN6CEzheHZoCXEQ6AEsfsgnU9Eb4LbXkwUdNdBYCfa6XjuwXrq1FsG" +
 			"TvSaJUTzz89kvCnevmPUbdKkw2U43aUSb1SjC1VARGTv31kn4foVWCmgNFqqQ7FwjLcNBN5V5eEwto97XpaX37vAzVK1CX6xpTzb57" +
 			"wFzqXrWExDDfAjwBpaioHVp3yHH7CsGC8MPxK8oT2YH7ZowwZnhvpZnSSFJZmq7S2qxumtK8Xbb7tXvxqyHRwYCzrgr6Vny6oQzauJ" +
 			"CeJanRrWVPoqzgkw7KKJ2U4p3wDUkdyu1UzryWjC9RzAYePBXCgCropzucV8AewVRESgudCxz6nBJFQg8fx9CRripKrh368qHQddPb" +
@@ -64,7 +63,7 @@ class SignDocRestControllerTest {
 	/**
 	 * JWS가 발행된 서명 문서
 	 */
-	private static String reqMsg = "{\n" +
+	private static String signDocument = "{\n" +
 			"  \"credentialSubject\" : {\n" +
 			"    \"num\" : \"10\",\n" +
 			"    \"name\" : \"test\",\n" +
@@ -82,25 +81,21 @@ class SignDocRestControllerTest {
 
 	@Test
 	@DisplayName("서명 문서 발행 테스트")
-	void t04createReqMsg() throws Exception {
+	void t04createSignDocument() throws Exception {
 		mvc.perform(post(PATH + "/createSignDocument")
-						.content(String.valueOf(KeyPair.builder()
-								.publicKey(publicKey)
-								.privateKey(privateKey)
-								.build()))
 						.content(claim)
 						.session(SESSION))
 				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$").isNotEmpty())
-				.andDo(r -> reqMsg = r.getResponse().getContentAsString());
+				.andDo(r -> signDocument = r.getResponse().getContentAsString());
 	}
 
 	@Test
 	@DisplayName("서명 문서 검증 테스트")
 	void t05verifySignDocument() throws Exception {
 		mvc.perform(post(PATH + "/verifySignDocument")
-						.content(reqMsg)
+						.content(signDocument)
 						.session(SESSION))
 				.andDo(print())
 				.andExpect(status().isOk())

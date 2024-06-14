@@ -42,7 +42,7 @@ class TokenRestControllerTest {
 
 	@Test
 	@DisplayName("토큰(JWT) 발행 테스트")
-	void t02createToken() throws Exception {
+	void t01createToken() throws Exception {
 		mvc.perform(post(PATH + "/createToken")
 						.content(claim)
 						.session(SESSION))
@@ -53,8 +53,19 @@ class TokenRestControllerTest {
 
 	@Test
 	@DisplayName("토큰(JWT) 검증 테스트")
-	void t03createSignDocument() throws Exception {
+	void t02verifyToken() throws Exception {
 		mvc.perform(post(PATH + "/verifyToken")
+						.content(jwt)
+						.session(SESSION))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$").isNotEmpty());
+	}
+
+	@Test
+	@DisplayName("토큰(JWT)에서 클레임 추출 테스트")
+	void t03extractClaimInToken() throws Exception {
+		mvc.perform(post(PATH + "/extractClaim")
 						.content(jwt)
 						.session(SESSION))
 				.andDo(print())

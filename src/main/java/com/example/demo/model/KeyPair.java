@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
- * 요청문
+ * 공개키/개인키, 키 페어
  */
-@Schema(description = "요청문")
 @Data
 @SuperBuilder
 @NoArgsConstructor

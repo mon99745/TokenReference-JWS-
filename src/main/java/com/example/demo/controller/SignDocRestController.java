@@ -1,14 +1,12 @@
 package com.example.demo.controller;
 
-import com.example.demo.config.RsaKeyGenerator;
-import com.example.demo.model.KeyPair;
-import com.example.demo.service.TokenSerivce;
+import com.example.demo.service.KeyPairService;
+import com.example.demo.service.SignDocService;
 import com.example.demo.util.JsonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bitcoinj.core.Base58;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
@@ -34,9 +32,8 @@ import java.security.spec.InvalidKeySpecException;
 public class SignDocRestController {
 	public static final String TAG = "Signature Document Manager API";
 	public static final String PATH = "/api/v1";
-
-	protected final RsaKeyGenerator rsaKeyGenerator;
-	protected final TokenSerivce tokenSerivce;
+	protected final KeyPairService keyPairService;
+	protected final SignDocService signDocService;
 
 	/**
 	 * 서명 문서 발행
@@ -54,39 +51,12 @@ public class SignDocRestController {
 	 */
 	@PostMapping("createSignDocument")
 	@Operation(summary = "1. 서명 문서 발행")
-	public String createSignDocument(KeyPair keyPair, @RequestBody String claim) throws IOException,
+	public String createSignDocument(@RequestBody String claim) throws IOException,
 			NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException,
 			BadPaddingException, InvalidKeyException, JSONException {
+		JSONObject signDocument = signDocService.createSignDocument(claim);
 
-		if (keyPair.getPublicKey() == null || keyPair.getPrivateKey() == null) {
-			keyPair.setPublicKey(Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded()));
-			keyPair.setPrivateKey(Base58.encode(rsaKeyGenerator.getPrivateKey().getEncoded()));
-		}
-
-		JSONObject jsonObject = new JSONObject();
-
-		jsonObject.put("type", "JWS");
-		jsonObject.put("alg", "SHA256");
-		jsonObject.put("credentialSubject", new JSONObject(claim));
-		jsonObject.put("publicKey", keyPair.getPublicKey());
-
-		// Header 생성
-		String header = tokenSerivce.createHeader(jsonObject);
-		log.info("header = " + header);
-
-		// Payload 생성
-		String payload = tokenSerivce.createPayload(jsonObject);
-		log.info("payload = " + payload);
-
-		// Signature 생성
-		String signature = tokenSerivce.createSignature(payload, keyPair);
-		log.info("signature = " + signature);
-
-		String jws = tokenSerivce.createJws(header, payload, signature);
-		log.info("jws = " + jws);
-		jsonObject.put("jws", jws);
-
-		return JsonUtil.toPrettyString(jsonObject.toString());
+		return JsonUtil.toPrettyString(signDocument.toString());
 	}
 
 	/**
@@ -109,6 +79,7 @@ public class SignDocRestController {
 			IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, IOException,
 			BadPaddingException, InvalidKeyException, JSONException {
 		JSONObject doc = new JSONObject(document);
-		return tokenSerivce.verifyDocument(doc);
+		String privateKey = keyPairService.getPrivateKey();
+		return signDocService.verifyDocument(doc, privateKey);
 	}
 }

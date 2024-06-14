@@ -11,7 +11,7 @@ Json Web Token을 커스텀 발행 및 검증하여 관련 카테고리 개발�
 ## 기능 소개
 ### 1. 토큰 발행
 #### 1-1) 호출 방식 
-메소드명 : api/v1/createToken
+**메소드명 : api/v1/createToken**
 
 | Request Type | Value  | Description |
 |--------------|--------|-------------|
@@ -36,7 +36,7 @@ Json Web Token을 커스텀 발행 및 검증하여 관련 카테고리 개발�
 
 ### 2. 토큰 검증
 #### 2-1) 호출 방식
-메소드명 : api/v1/verifyToken
+**메소드명 : api/v1/verifyToken**
 
 | Request Type | Value  | Description |
 |--------------|--------|-------------|
