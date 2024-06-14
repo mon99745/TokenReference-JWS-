@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.json.JSONObject;
 
+/**
+ * Token(JWT)
+ */
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
