@@ -64,10 +64,10 @@ public class SignDocRestController {
 			keyPair.setPublicKey(Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded()));
 			keyPair.setPrivateKey(Base58.encode(rsaKeyGenerator.getPrivateKey().getEncoded()));
 		}
-
 		Token.Header headerInfo = Token.Header.builder()
 				.typ("JWT")
-				.alg("SHA256").build();
+				.alg("RSA")
+				.build();
 
 		Token.Payload payloadInfo = Token.Payload.builder()
 				.credentialSubject(new JSONObject(claim))
@@ -85,7 +85,7 @@ public class SignDocRestController {
 		String signature = tokenSerivce.createSignature(payload, keyPair);
 		log.info("signature = " + signature);
 
-		String jws = tokenSerivce.createJws(header, payload, signature);
+		String jws = tokenSerivce.combineToken(header, payload, signature);
 		log.info("jws = " + jws);
 
 		// TODO : SignDocument 모델 생성 후 Reflection 사용으로 필드 값을 모델에 대입하도록

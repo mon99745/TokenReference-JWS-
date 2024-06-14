@@ -1,14 +1,12 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Token;
+import com.example.demo.service.KeyPairService;
 import com.example.demo.service.TokenSerivce;
-import com.example.demo.config.RsaKeyGenerator;
 import com.example.demo.util.JsonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bitcoinj.core.Base58;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +31,7 @@ import java.security.spec.InvalidKeySpecException;
 public class TokenRestController {
 	public static final String TAG = "JWT Manager API";
 	public static final String PATH = "/api/v1";
-	protected final RsaKeyGenerator rsaKeyGenerator;
+	protected final KeyPairService keyPairService;
 	protected final TokenSerivce tokenSerivce;
 
 	/**
@@ -54,31 +52,8 @@ public class TokenRestController {
 	public String createToken(@RequestBody String claim) throws IOException, NoSuchAlgorithmException,
 			InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException,
 			InvalidKeyException {
-		Token.Header headerInfo = Token.Header.builder()
-				.typ("JWT")
-				.alg("SHA256").build();
-
-		Token.Payload payloadInfo = Token.Payload.builder()
-				.credentialSubject(new JSONObject(claim))
-				.build();
-
-		// Header 생성
-		String header = tokenSerivce.createHeader(headerInfo);
-		log.info("header = " + header);
-
-		// Payload 생성
-		String payload = tokenSerivce.createPayload(payloadInfo);
-		log.info("payload = " + payload);
-
-		// Signature 생성
-		String publicKey = Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded());
-		String signature = tokenSerivce.createSignatureForJwt(header, payload, publicKey);
-		log.info("signature = " + signature);
-
-		String jwt = tokenSerivce.createJwt(header, payload, signature);
-		log.info("jwt = " + jwt);
-
-		return jwt;
+		String JsonWebToken = tokenSerivce.createJwt(claim);
+		return JsonWebToken;
 	}
 
 	/**
@@ -99,8 +74,9 @@ public class TokenRestController {
 	public ResponseEntity<Object> verifyToken(@RequestBody String token) throws IOException,
 			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException,
 			BadPaddingException, InvalidKeyException {
-		String privateKey = Base58.encode(rsaKeyGenerator.getPrivateKey().getEncoded());
-		return tokenSerivce.verifyToken(token, privateKey);
+		String privateKey = keyPairService.getPrivateKey();
+		ResponseEntity<Object> verifyResult = tokenSerivce.verifyToken(token, privateKey);
+		return verifyResult;
 	}
 
 	/**

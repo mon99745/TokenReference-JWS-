@@ -32,6 +32,35 @@ public class TokenSerivce {
 	protected final RsaKeyGenerator rsaKeyGenerator;
 	protected final VerifyProperties verifyProperties;
 
+	public String createJwt(String claim) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+		Token.Header headerInfo = Token.Header.builder()
+				.typ("JWT")
+				.alg("SHA256").build();
+
+		Token.Payload payloadInfo = Token.Payload.builder()
+				.credentialSubject(new JSONObject(claim))
+				.build();
+
+		// Header 생성
+		String header = createHeader(headerInfo);
+		log.info("header = " + header);
+
+		// Payload 생성
+		String payload = createPayload(payloadInfo);
+		log.info("payload = " + payload);
+
+		// Signature 생성
+		String publicKey = Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded());
+		String signature = createSignatureForJwt(header, payload, publicKey);
+		log.info("signature = " + signature);
+
+		String jwt = combineToken(header, payload, signature);
+		log.info("jwt = " + jwt);
+
+		return jwt;
+	}
+
 	public String createHeader(Token.Header header) throws IOException {
 		String typ = header.getTyp();
 		String alg = header.getAlg();
@@ -74,11 +103,7 @@ public class TokenSerivce {
 		return signature;
 	}
 
-	public String createJwt(String header, String payload, String signature) {
-		return header + "." + payload + "." + signature;
-	}
-
-	public String createJws(String header, String payload, String signature) {
+	public String combineToken(String header, String payload, String signature) {
 		return header + "." + payload + "." + signature;
 	}
 
