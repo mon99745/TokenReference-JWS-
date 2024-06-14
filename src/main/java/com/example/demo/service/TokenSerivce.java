@@ -2,7 +2,6 @@ package com.example.demo.service;
 
 import com.example.demo.config.RsaKeyGenerator;
 import com.example.demo.config.VerifyProperties;
-import com.example.demo.model.KeyPair;
 import com.example.demo.model.Token;
 import com.example.demo.util.ByteUtil;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +18,8 @@ import javax.crypto.NoSuchPaddingException;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 import java.util.Objects;
 
 @Slf4j
@@ -61,6 +58,25 @@ public class TokenSerivce {
 		return jwt;
 	}
 
+	public ResponseEntity<Object> verifyToken(String token, String privateKey) throws NoSuchAlgorithmException,
+			IOException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException,
+			BadPaddingException, InvalidKeyException {
+		// Token Object Parsing
+		Token tokenObject = parseToken(token);
+
+		// Decrypt Signature
+		String signature = rsaKeyGenerator.decryptPrvRSA(tokenObject.getSignature(), privateKey);
+
+		// 해시 검증을 통해 위변조 검증
+		if (signature.equals(tokenObject.getHeader() + tokenObject.getPayload())) {
+			String successMessage = "검증 성공하였습니다.";
+			return new ResponseEntity<>(successMessage, HttpStatus.OK);
+		} else {
+			String errorMessage = "검증 실패하였습니다.";
+			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+		}
+	}
+
 	public String createHeader(Token.Header header) throws IOException {
 		String typ = header.getTyp();
 		String alg = header.getAlg();
@@ -86,10 +102,10 @@ public class TokenSerivce {
 		return encPayload;
 	}
 
-	public String createSignature(String payload, KeyPair keyPair)
+	public String createSignature(String payload, String publicKey)
 			throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
 			InvalidKeySpecException, BadPaddingException, InvalidKeyException {
-		String signature = rsaKeyGenerator.encryptPrvRSA(payload, keyPair.getPrivateKey());
+		String signature = rsaKeyGenerator.encryptPubRSA(payload, publicKey);
 
 		return signature;
 	}
@@ -105,55 +121,6 @@ public class TokenSerivce {
 
 	public String combineToken(String header, String payload, String signature) {
 		return header + "." + payload + "." + signature;
-	}
-
-	public ResponseEntity<Object> verifyToken(String token, String privateKey) throws NoSuchAlgorithmException,
-			IOException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException,
-			BadPaddingException, InvalidKeyException {
-		// Token Object Parsing
-		Token tokenObject = parseToken(token);
-
-		// Decrypt Signature
-		String signature = rsaKeyGenerator.decryptPrvRSA(tokenObject.getSignature(), privateKey);
-
-		// 해시 검증을 통해 위변조 검증
-		if (signature.equals(tokenObject.getHeader() + tokenObject.getPayload())) {
-			String successMessage = "검증 성공하였습니다.";
-			return new ResponseEntity<>(successMessage, HttpStatus.OK);
-		} else {
-			String errorMessage = "검증 실패하였습니다.";
-			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	public ResponseEntity<Object> verifyDocument(JSONObject document) throws NoSuchAlgorithmException, IOException,
-			NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, BadPaddingException,
-			InvalidKeyException {
-		MessageDigest digest = MessageDigest.getInstance("SHA-256");
-
-		String credentialSubject = document.optString("credentialSubject");
-		if (Objects.isNull(credentialSubject) || credentialSubject.isEmpty()) {
-			throw new RuntimeException("credentialSubject is null or empty");
-		}
-
-		byte[] claimByteData = ByteUtil.stringToBytes(credentialSubject);
-
-		// Token Object Parsing
-		Token tokenObject = parseToken(document.getString("jws"));
-
-		// Signature
-		String publickey = document.getString("publicKey");
-		String signature = rsaKeyGenerator.decryptPubRSA(tokenObject.getSignature(), publickey);
-		byte[] signatureByteData = Base58.decode(signature);
-
-		// 해시 검증을 통해 위변조 검증
-		if (Arrays.equals(claimByteData, signatureByteData)) {
-			String successMessage = "검증 성공하였습니다.";
-			return new ResponseEntity<>(successMessage, HttpStatus.OK);
-		} else {
-			String errorMessage = "검증 실패하였습니다.";
-			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-		}
 	}
 
 	public JSONObject extractCredentialSubject(String token) throws IOException {

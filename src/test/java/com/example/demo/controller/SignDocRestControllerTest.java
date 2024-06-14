@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import com.example.demo.annotation.ControllerTest;
-import com.example.demo.model.KeyPair;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +63,7 @@ class SignDocRestControllerTest {
 	/**
 	 * JWS가 발행된 서명 문서
 	 */
-	private static String reqMsg = "{\n" +
+	private static String signDocument = "{\n" +
 			"  \"credentialSubject\" : {\n" +
 			"    \"num\" : \"10\",\n" +
 			"    \"name\" : \"test\",\n" +
@@ -82,25 +81,21 @@ class SignDocRestControllerTest {
 
 	@Test
 	@DisplayName("서명 문서 발행 테스트")
-	void t04createReqMsg() throws Exception {
+	void t04createSignDocument() throws Exception {
 		mvc.perform(post(PATH + "/createSignDocument")
-						.content(String.valueOf(KeyPair.builder()
-								.publicKey(publicKey)
-								.privateKey(privateKey)
-								.build()))
 						.content(claim)
 						.session(SESSION))
 				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$").isNotEmpty())
-				.andDo(r -> reqMsg = r.getResponse().getContentAsString());
+				.andDo(r -> signDocument = r.getResponse().getContentAsString());
 	}
 
 	@Test
 	@DisplayName("서명 문서 검증 테스트")
 	void t05verifySignDocument() throws Exception {
 		mvc.perform(post(PATH + "/verifySignDocument")
-						.content(reqMsg)
+						.content(signDocument)
 						.session(SESSION))
 				.andDo(print())
 				.andExpect(status().isOk())
