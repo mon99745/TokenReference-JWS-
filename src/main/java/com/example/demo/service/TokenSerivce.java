@@ -33,7 +33,7 @@ public class TokenSerivce {
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
 		Token.Header headerInfo = Token.Header.builder()
 				.typ("JWT")
-				.alg("SHA256").build();
+				.alg("RSA").build();
 
 		Token.Payload payloadInfo = Token.Payload.builder()
 				.credentialSubject(new JSONObject(claim))
