@@ -1,27 +1,23 @@
 package com.example.demo.controller;
 
+import com.example.demo.message.CreateTokenResponse;
+import com.example.demo.message.ExtractClaimResponse;
+import com.example.demo.message.VerifyTokenResponse;
 import com.example.demo.service.KeyPairService;
 import com.example.demo.service.TokenSerivce;
-import com.example.demo.util.JsonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
 import java.io.IOException;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Map;
 
 @Api(tags = TokenRestController.TAG)
 @Slf4j
@@ -34,62 +30,51 @@ public class TokenRestController {
 	protected final KeyPairService keyPairService;
 	protected final TokenSerivce tokenSerivce;
 
+
 	/**
 	 * 토큰 발행
 	 *
-	 * @param claim
+	 * @param claim Claim to include in JWT
 	 * @return
-	 * @throws IOException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
-	 * @throws NoSuchPaddingException
-	 * @throws IllegalBlockSizeException
-	 * @throws BadPaddingException
-	 * @throws InvalidKeyException
 	 */
 	@PostMapping("createToken")
 	@Operation(summary = "1. 토큰(JWT) 발행")
-	public String createToken(@RequestBody String claim) throws IOException, NoSuchAlgorithmException,
-			InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException,
-			InvalidKeyException {
-		String JsonWebToken = tokenSerivce.createJwt(claim);
-		return JsonWebToken;
+	public CreateTokenResponse createToken(@RequestBody Map<String, String> claim){
+		log.info("Requset Claims : ", claim);
+
+		return tokenSerivce.createJwt(claim);
 	}
 
 	/**
 	 * 토큰 검증
 	 *
-	 * @param token
+	 * @param request Request with token
 	 * @return
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
-	 * @throws NoSuchPaddingException
-	 * @throws IllegalBlockSizeException
-	 * @throws BadPaddingException
-	 * @throws InvalidKeyException
 	 */
 	@PostMapping("verifyToken")
 	@Operation(summary = "2. 토큰(JWT) 검증")
-	public ResponseEntity<Object> verifyToken(@RequestBody String token) throws IOException,
-			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException,
-			BadPaddingException, InvalidKeyException {
+	public VerifyTokenResponse verifyToken(@RequestBody Map<String, String> request)
+			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+		log.info("Request JWT : " + request.get("jwt"));
+
 		String privateKey = keyPairService.getPrivateKey();
-		ResponseEntity<Object> verifyResult = tokenSerivce.verifyToken(token, privateKey);
-		return verifyResult;
+		return tokenSerivce.verifyToken(request.get("jwt"), privateKey);
 	}
 
 	/**
 	 * 토큰에서 클레임 추출
 	 *
-	 * @param token
+	 * @param request Request with token
 	 * @return
-	 * @throws IOException
 	 */
 	@PostMapping("extractClaim")
 	@Operation(summary = "3. 토큰(JWT)에서 클레임 추출")
-	public String extractClaim(@RequestBody String token) throws IOException {
-		JSONObject claim = tokenSerivce.extractCredentialSubject(token);
-		return JsonUtil.toPrettyString(claim.toString());
+	public ExtractClaimResponse extractClaim(@RequestBody Map<String, String> request) {
+		log.info("Request JWT : " + request.get("jwt"));
+
+		return tokenSerivce.extractCredentialSubject(request.get("jwt"));
 	}
 }
