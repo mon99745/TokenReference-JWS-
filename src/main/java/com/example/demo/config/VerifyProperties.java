@@ -1,42 +1,49 @@
 package com.example.demo.config;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import javax.annotation.PostConstruct;
 
 /**
  * 검증 설정
  */
 @Data
-@Configuration
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ConfigurationProperties(prefix = VerifyProperties.PROPERTY_PREFIX)
 public class VerifyProperties {
 	/**
-	 * 키 페어 경로
+	 * 설정 타이틀
 	 */
-	@Value("${keyPair.path}")
-	protected String path = "./files/";
-
-	/**
-	 * 키 페어 생성 알고리즘
-	 */
-	@Value("${keyPair.algorithm}")
-	protected String algorithm = "RSA";
-
-	/**
-	 * 키 페어 크기
-	 */
-	@Value("${keyPair.keySize}")
-	protected int keySize = 2048;
+	public static final String PROPERTY_PREFIX = "verify";
 
 	/**
 	 * 설정 정보
 	 */
 	@Getter
-	@Setter
 	private static VerifyProperties instance = new VerifyProperties();
+
+	/**
+	 * 키 페어 경로
+	 */
+	protected String path = "./files/";
+
+	/**
+	 * 키 페어 크기
+	 */
+	protected int keySize = 2048;
+
+	/**
+	 * 토큰 타입
+	 */
+	protected String typ = "JWT";
+
+	/**
+	 * 암호화 알고리즘
+	 */
+	protected String alg = "RSA";
 }

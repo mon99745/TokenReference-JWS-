@@ -32,8 +32,9 @@ public class TokenSerivce {
 	public String createJwt(String claim) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
 		Token.Header headerInfo = Token.Header.builder()
-				.typ("JWT")
-				.alg("RSA").build();
+				.typ(verifyProperties.getTyp())
+				.alg(verifyProperties.getAlg())
+				.build();
 
 		Token.Payload payloadInfo = Token.Payload.builder()
 				.credentialSubject(new JSONObject(claim))

@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.config.RsaKeyGenerator;
+import com.example.demo.config.VerifyProperties;
 import com.example.demo.model.Token;
 import com.example.demo.util.ByteUtil;
 import lombok.RequiredArgsConstructor;
@@ -28,13 +29,13 @@ import java.util.Objects;
 public class SignDocService {
 	protected final RsaKeyGenerator rsaKeyGenerator;
 	protected final TokenSerivce tokenSerivce;
+	protected final VerifyProperties verifyProperties;
 
 	public JSONObject createSignDocument(String claim) throws IOException, NoSuchPaddingException,
 			IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException,
 			InvalidKeyException {
 		Token.Header headerInfo = Token.Header.builder()
-				.typ("JWS")
-				.alg("RSA")
+				.alg(verifyProperties.getAlg())
 				.build();
 
 		Token.Payload payloadInfo = Token.Payload.builder()

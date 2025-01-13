@@ -4,7 +4,7 @@
 
 
 ## Release
-- [v1.1.0](./) `-ing`
+- [v1.1.0](./RELEASENOTE.md#v100-2024-04-24-) `-ing`
 - [v1.0.0](./RELEASENOTE.md#v100-2024-01-30-)
 
 ## 기능 소개

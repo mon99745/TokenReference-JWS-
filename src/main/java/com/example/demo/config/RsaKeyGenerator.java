@@ -32,10 +32,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.bitcoinj.core.Base58;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Getter
+@Primary
 @Component
 @RequiredArgsConstructor
 @Configuration
@@ -74,7 +76,7 @@ public class RsaKeyGenerator implements InitializingBean {
 	 * 키 파일을 생성하는 메소드, 무조건 파일을 모두 새로 생성
 	 */
 	private void createKeyFile() throws IOException, NoSuchAlgorithmException {
-		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(verifyProperties.getAlgorithm());
+		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(verifyProperties.getAlg());
 		keyPairGenerator.initialize(verifyProperties.getKeySize());
 		KeyPair keyPair = keyPairGenerator.genKeyPair();
 		Map<String, String> keys = new LinkedHashMap<>();
@@ -121,7 +123,7 @@ public class RsaKeyGenerator implements InitializingBean {
 		Map<String, Object> Map = new HashMap<>();
 		try {
 			// RSA 키페어 생성을 위한 KeyPairGenerator 인스턴스 생성
-			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(verifyProperties.getAlgorithm());
+			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(verifyProperties.getAlg());
 
 			// 키페어 생성 시 사용할 키파라미터 설정 (여기서는 기본값 사용)
 			keyPairGenerator.initialize(verifyProperties.getKeySize());
@@ -145,7 +147,7 @@ public class RsaKeyGenerator implements InitializingBean {
 	public PrivateKey getPrivateKey(String privateKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		byte[] bytes = Base58.decode(privateKey);
 		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(bytes);
-		KeyFactory keyFactory = KeyFactory.getInstance(verifyProperties.getAlgorithm());
+		KeyFactory keyFactory = KeyFactory.getInstance(verifyProperties.getAlg());
 		PrivateKey pk = keyFactory.generatePrivate(spec);
 		return pk;
 	}
@@ -156,7 +158,7 @@ public class RsaKeyGenerator implements InitializingBean {
 	public PublicKey getPublicKey(String publicKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		byte[] bytes = Base58.decode(publicKey);
 		X509EncodedKeySpec spec = new X509EncodedKeySpec(bytes);
-		KeyFactory keyFactory = KeyFactory.getInstance(verifyProperties.getAlgorithm());
+		KeyFactory keyFactory = KeyFactory.getInstance(verifyProperties.getAlg());
 		PublicKey pk = keyFactory.generatePublic(spec);
 		return pk;
 	}
@@ -171,7 +173,7 @@ public class RsaKeyGenerator implements InitializingBean {
 		byte[] bytes = Files.readAllBytes(Paths.get(verifyProperties.getPath() + "private.pem"));
 		bytes = Base58.decode(new String(bytes, StandardCharsets.UTF_8));
 		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(bytes);
-		KeyFactory keyFactory = KeyFactory.getInstance(verifyProperties.getAlgorithm());
+		KeyFactory keyFactory = KeyFactory.getInstance(verifyProperties.getAlg());
 		PrivateKey pk = keyFactory.generatePrivate(spec);
 		return pk;
 	}
@@ -186,7 +188,7 @@ public class RsaKeyGenerator implements InitializingBean {
 		byte[] bytes = Files.readAllBytes(Paths.get(verifyProperties.getPath() + "public.pem"));
 		bytes = Base58.decode(new String(bytes, StandardCharsets.UTF_8));
 		X509EncodedKeySpec spec = new X509EncodedKeySpec(bytes);
-		KeyFactory keyFactory = KeyFactory.getInstance(verifyProperties.getAlgorithm());
+		KeyFactory keyFactory = KeyFactory.getInstance(verifyProperties.getAlg());
 		PublicKey pk = keyFactory.generatePublic(spec);
 		return pk;
 	}
