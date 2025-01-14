@@ -40,7 +40,7 @@ public class TokenRestController {
 	@PostMapping("createToken")
 	@Operation(summary = "1. 토큰(JWT) 발행")
 	public CreateTokenResponse createToken(@RequestBody Map<String, String> claim){
-		log.info("Requset Claims : ", claim);
+		log.info("Request Claims : ", claim);
 
 		return tokenSerivce.createJwt(claim);
 	}

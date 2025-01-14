@@ -35,6 +35,10 @@ public class TokenSerivce {
 
 	public CreateTokenResponse createJwt(Map<String, String> claim) {
 		try {
+			if (claim == null || claim.isEmpty()) {
+				throw new IllegalArgumentException("Claim is empty");
+			}
+
 			Token.Header headerInfo = Token.Header.builder()
 					.typ(verifyProperties.getTyp())
 					.alg(verifyProperties.getAlg())
@@ -66,6 +70,14 @@ public class TokenSerivce {
 					.jwt(jwt)
 					.build();
 
+		} catch (IllegalArgumentException e) {
+			log.error("JWT 생성 중 예외 발생: ", e);
+			return CreateTokenResponse.builder()
+					.result("Fail")
+					.claim(claim)
+					.statusCode(HttpStatus.BAD_REQUEST.value())
+					.errorMessage(e.getMessage())
+					.build();
 		} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException |
 				NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
 				InvalidKeyException e) {
@@ -81,6 +93,10 @@ public class TokenSerivce {
 
 	public VerifyTokenResponse verifyToken(String token, String privateKey) {
 		try {
+			if (token == null || token.isEmpty()) {
+				throw new IllegalArgumentException("JWT is empty");
+			}
+
 			// Token Object Parsing
 			Token tokenObject = parseToken(token);
 
@@ -102,6 +118,14 @@ public class TokenSerivce {
 						.errorMessage("토큰이 위변조 되었습니다.")
 						.build();
 			}
+		} catch (IllegalArgumentException e) {
+			log.error("JWT 검증 중 예외 발생: ", e);
+			return VerifyTokenResponse.builder()
+					.result("Fail")
+					.jwt(token)
+					.statusCode(HttpStatus.BAD_REQUEST.value())
+					.errorMessage(e.getMessage())
+					.build();
 		} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException |
 				 NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
 				 InvalidKeyException e) {
@@ -116,6 +140,11 @@ public class TokenSerivce {
 	}
 
 	public ExtractClaimResponse extractCredentialSubject(String token) {
+		if (token == null || token.isEmpty()) {
+			throw new IllegalArgumentException("JWT is empty");
+		}
+
+		// Token Object Parsing
 		Token tokenObject = parseToken(token);
 		ObjectMapper objectMapper = new ObjectMapper();
 
@@ -130,6 +159,13 @@ public class TokenSerivce {
 					.result("Success")
 					.claim(objectMapper.readValue(credentialSubject, Map.class))
 					.jwt(token)
+					.build();
+		} catch (IllegalArgumentException e) {
+			log.error("Claim 추출 실패 : ", e);
+			return ExtractClaimResponse.builder()
+					.statusCode(HttpStatus.BAD_REQUEST.value())
+					.result("Fail")
+					.errorMessage("Claim 추출 실패 : " + e)
 					.build();
 		} catch (IOException e) {
 			return ExtractClaimResponse.builder()
