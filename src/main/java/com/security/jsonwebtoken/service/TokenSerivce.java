@@ -5,6 +5,7 @@ import com.security.jsonwebtoken.config.VerifyProperties;
 import com.security.jsonwebtoken.message.CreateTokenResponse;
 import com.security.jsonwebtoken.message.ExtractClaimResponse;
 import com.security.jsonwebtoken.message.VerifyTokenResponse;
+import com.security.jsonwebtoken.model.Claims;
 import com.security.jsonwebtoken.model.Token;
 import com.security.jsonwebtoken.util.ByteUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +34,31 @@ public class TokenSerivce {
 	protected final RsaKeyGenerator rsaKeyGenerator;
 	protected final VerifyProperties verifyProperties;
 
+//	public Claims setClaims(Map<String, String> request) {
+//		/**
+//		 * TODO : Add default claims
+//		 */
+//		Claims.RegisteredClaims registeredClaims = Claims.RegisteredClaims.builder()
+//				.issuer(request.get("uniqueId"))
+//				.jwtId(request.get("num"))
+//				.build();
+//
+//		Claims.PublicClaims publicClaims = Claims.PublicClaims.builder()
+//				.username(request.get("name"))
+//				.build();
+//
+//		Claims.PrivateClaims privateClaims = Claims.PrivateClaims.builder()
+//				.build();
+//
+//		return Claims.builder()
+//				.registeredClaims(registeredClaims)
+//				.publicClaims(publicClaims)
+//				.privateClaims(privateClaims)
+//				.build();
+//	}
+//	public CreateTokenResponse createJwt(Map<String, String> claim) {
+//		return this.createJwt(setClaims(claim));
+//	}
 	public CreateTokenResponse createJwt(Map<String, String> claim) {
 		try {
 			if (claim == null || claim.isEmpty()) {

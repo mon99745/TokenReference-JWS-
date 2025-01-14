@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 
 /**
- * 검증 설정
+ * 토큰 검증 관리
  */
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
