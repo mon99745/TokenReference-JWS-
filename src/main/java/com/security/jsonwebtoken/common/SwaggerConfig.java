@@ -1,4 +1,4 @@
-package com.security.jsonwebtoken.config;
+package com.security.jsonwebtoken.common;
 
 import com.security.jsonwebtoken.controller.TokenRestController;
 import com.security.jsonwebtoken.controller.KeyPairRestController;
@@ -28,9 +28,8 @@ public class SwaggerConfig {
 						new Tag(TokenRestController.TAG, "토큰(JWT) 관리 API", 200),
 						new Tag(SignDocRestController.TAG, "서명 문서(Signature Document) 관리 API", 300))
 				.select()
-				.apis(RequestHandlerSelectors.basePackage("com.example.demo.controller"))
+				.apis(RequestHandlerSelectors.basePackage("com.security.jsonwebtoken.controller"))
 				.build();
-
 	}
 
 	public ApiInfo apiInfo() {
