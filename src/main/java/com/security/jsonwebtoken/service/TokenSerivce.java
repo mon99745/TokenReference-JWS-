@@ -90,29 +90,27 @@ public class TokenSerivce {
 			String jwt = combineToken(header, payload, signature);
 			log.info("jwt = " + jwt);
 			return CreateTokenResponse.builder()
-					.result("Success")
+					.resultMsg("Success")
+					.resultCode(String.valueOf(HttpStatus.OK.value()))
 					.claim(claim)
-					.statusCode(HttpStatus.OK.value())
 					.jwt(jwt)
 					.build();
 
 		} catch (IllegalArgumentException e) {
 			log.error("JWT 생성 중 예외 발생: ", e);
 			return CreateTokenResponse.builder()
-					.result("Fail")
+					.resultMsg("Fail: " + e.getMessage())
+					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 					.claim(claim)
-					.statusCode(HttpStatus.BAD_REQUEST.value())
-					.errorMessage(e.getMessage())
 					.build();
 		} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException |
 				NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
 				InvalidKeyException e) {
 			log.error("JWT 생성 중 예외 발생: ", e);
 			return CreateTokenResponse.builder()
-					.result("Fail")
+					.resultMsg("Fail" + e.getMessage())
+					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 					.claim(claim)
-					.statusCode(HttpStatus.BAD_REQUEST.value())
-					.errorMessage("JWT 생성 실패 :" + e)
 					.build();
 		}
 	}
@@ -132,35 +130,32 @@ public class TokenSerivce {
 			// 해시 비교를 통해 위변조 검증
 			if (signature.equals(tokenObject.getHeader() + tokenObject.getPayload())) {
 				return VerifyTokenResponse.builder()
-						.statusCode(HttpStatus.OK.value())
-						.result("Success")
+						.resultMsg("Success")
+						.resultCode(String.valueOf(HttpStatus.OK.value()))
 						.jwt(token)
 						.build();
 			} else {
 				return VerifyTokenResponse.builder()
-						.statusCode(HttpStatus.BAD_REQUEST.value())
-						.result("Fail")
+						.resultMsg("Fail: " + "토큰이 위변조 되었습니다.")
+						.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 						.jwt(token)
-						.errorMessage("토큰이 위변조 되었습니다.")
 						.build();
 			}
 		} catch (IllegalArgumentException e) {
 			log.error("JWT 검증 중 예외 발생: ", e);
 			return VerifyTokenResponse.builder()
-					.result("Fail")
+					.resultMsg("Fail: " + e.getMessage())
+					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 					.jwt(token)
-					.statusCode(HttpStatus.BAD_REQUEST.value())
-					.errorMessage(e.getMessage())
 					.build();
 		} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException |
 				 NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
 				 InvalidKeyException e) {
 			log.error("JWT 검증 중 예외 발생: ", e);
 			return VerifyTokenResponse.builder()
-					.statusCode(HttpStatus.BAD_REQUEST.value())
-					.result("Fail")
+					.resultMsg("Fail:" + "JWT 검증 실패 :" + e.getMessage())
+					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 					.jwt(token)
-					.errorMessage("JWT 검증 실패 :" + e)
 					.build();
 		}
 	}
@@ -181,23 +176,22 @@ public class TokenSerivce {
 				throw new RuntimeException("Extracted credentialSubject is null or empty");
 			}
 			return ExtractClaimResponse.builder()
-					.statusCode(HttpStatus.OK.value())
-					.result("Success")
+					.resultMsg("Success")
+					.resultCode(String.valueOf(HttpStatus.OK.value()))
 					.claim(objectMapper.readValue(credentialSubject, Map.class))
 					.jwt(token)
 					.build();
 		} catch (IllegalArgumentException e) {
 			log.error("Claim 추출 실패 : ", e);
 			return ExtractClaimResponse.builder()
-					.statusCode(HttpStatus.BAD_REQUEST.value())
-					.result("Fail")
-					.errorMessage("Claim 추출 실패 : " + e)
+					.resultMsg("Fail: " + "Claim 추출 실패 : " + e.getMessage())
+					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 					.build();
 		} catch (IOException e) {
+			log.error("Claim 추출 실패 : ", e);
 			return ExtractClaimResponse.builder()
-					.statusCode(HttpStatus.BAD_REQUEST.value())
-					.result("Fail")
-					.errorMessage("Claim 추출 실패 :" + e)
+					.resultMsg("Fail: " + "Claim 추출 실패 :" + e.getMessage())
+					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 					.build();
 		}
 	}

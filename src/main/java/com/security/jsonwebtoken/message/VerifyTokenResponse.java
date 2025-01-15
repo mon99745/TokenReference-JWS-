@@ -6,8 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class VerifyTokenResponse {
-	private int statusCode;
-	private String result;
 	private String jwt;
-	private String errorMessage;
+	private String resultCode;
+	private String resultMsg;
 }
