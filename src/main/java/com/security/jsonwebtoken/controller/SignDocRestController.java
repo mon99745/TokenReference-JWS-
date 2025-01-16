@@ -24,13 +24,13 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-@Api(tags = SignDocRestController.TAG)
+//@Api(tags = SignDocRestController.TAG)
 @Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(SignDocRestController.PATH)
 public class SignDocRestController {
-	public static final String TAG = "Signature Document Manager API";
+//	public static final String TAG = "Signature Document Manager API";
 	public static final String PATH = "/api/v1";
 	protected final KeyPairService keyPairService;
 	protected final SignDocService signDocService;
@@ -49,15 +49,15 @@ public class SignDocRestController {
 	 * @throws InvalidKeyException
 	 * @throws JSONException
 	 */
-	@PostMapping("createSignDocument")
-	@Operation(summary = "1. 서명 문서 발행")
-	public String createSignDocument(@RequestBody String claim) throws IOException,
-			NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException,
-			BadPaddingException, InvalidKeyException, JSONException {
-		JSONObject signDocument = signDocService.createSignDocument(claim);
+//	@PostMapping("createSignDocument")
+//	@Operation(summary = "1. 서명 문서 발행")
+//	public String createSignDocument(@RequestBody String claim) throws IOException,
+//			NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException,
+//			BadPaddingException, InvalidKeyException, JSONException {
+//		JSONObject signDocument = signDocService.createSignDocument(claim);
 
-		return JsonUtil.toPrettyString(signDocument.toString());
-	}
+//		return JsonUtil.toPrettyString(signDocument.toString());
+//	}
 
 	/**
 	 * 서명 문서 검증
@@ -73,13 +73,13 @@ public class SignDocRestController {
 	 * @throws InvalidKeyException
 	 * @throws JSONException
 	 */
-	@PostMapping("verifySignDocument")
-	@Operation(summary = "2. 서명 문서 검증")
-	public ResponseEntity<Object> verifySignDocument(@RequestBody String document) throws NoSuchPaddingException,
-			IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, IOException,
-			BadPaddingException, InvalidKeyException, JSONException {
-		JSONObject doc = new JSONObject(document);
-		String privateKey = keyPairService.getPrivateKey();
-		return signDocService.verifyDocument(doc, privateKey);
-	}
+//	@PostMapping("verifySignDocument")
+//	@Operation(summary = "2. 서명 문서 검증")
+//	public ResponseEntity<Object> verifySignDocument(@RequestBody String document) throws NoSuchPaddingException,
+//			IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, IOException,
+//			BadPaddingException, InvalidKeyException, JSONException {
+//		JSONObject doc = new JSONObject(document);
+//		String privateKey = keyPairService.getPrivateKey();
+//		return signDocService.verifyDocument(doc, privateKey);
+//	}
 }

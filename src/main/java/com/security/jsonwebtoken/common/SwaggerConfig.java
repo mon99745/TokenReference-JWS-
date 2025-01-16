@@ -25,8 +25,9 @@ public class SwaggerConfig {
 				.apiInfo(apiInfo())
 				.tags(
 						new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),new Tag(KeyPairRestController.TAG, "키쌍(Key-Pair) 관리 API", 100),
-						new Tag(TokenRestController.TAG, "토큰(JWT) 관리 API", 200),
-						new Tag(SignDocRestController.TAG, "서명 문서(Signature Document) 관리 API", 300))
+						new Tag(TokenRestController.TAG, "토큰(JWT) 관리 API", 200)
+//						new Tag(SignDocRestController.TAG, "서명 문서(Signature Document) 관리 API", 300)
+						)
 				.select()
 				.apis(RequestHandlerSelectors.basePackage("com.security.jsonwebtoken.controller"))
 				.build();
