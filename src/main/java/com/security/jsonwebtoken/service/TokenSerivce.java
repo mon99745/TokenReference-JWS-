@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bitcoinj.core.Base58;
-import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +20,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -33,66 +33,38 @@ import java.util.Objects;
 public class TokenSerivce {
 	protected final RsaKeyGenerator rsaKeyGenerator;
 	protected final VerifyProperties verifyProperties;
+	protected final KeyPairService keyPairService;
 
-//	public Claims setClaims(Map<String, String> request) {
-//		/**
-//		 * TODO : Add default claims
-//		 */
-//		Claims.RegisteredClaims registeredClaims = Claims.RegisteredClaims.builder()
-//				.issuer(request.get("uniqueId"))
-//				.jwtId(request.get("num"))
-//				.build();
-//
-//		Claims.PublicClaims publicClaims = Claims.PublicClaims.builder()
-//				.username(request.get("name"))
-//				.build();
-//
-//		Claims.PrivateClaims privateClaims = Claims.PrivateClaims.builder()
-//				.build();
-//
-//		return Claims.builder()
-//				.registeredClaims(registeredClaims)
-//				.publicClaims(publicClaims)
-//				.privateClaims(privateClaims)
-//				.build();
-//	}
-//	public CreateTokenResponse createJwt(Map<String, String> claim) {
-//		return this.createJwt(setClaims(claim));
-//	}
-	public CreateTokenResponse createJwt(Map<String, String> claim) {
+	public CreateTokenResponse createJwt(Map<String, String> Authentication) {
+		return this.createJwt(setClaims(Authentication));
+	}
+	public CreateTokenResponse createJwt(Claims claims) {
 		try {
-			if (claim == null || claim.isEmpty()) {
+			if (claims == null) {
 				throw new IllegalArgumentException("Claim is empty");
 			}
 
-			Token.Header headerInfo = Token.Header.builder()
-					.typ(verifyProperties.getTyp())
-					.alg(verifyProperties.getAlg())
-					.build();
-
-			Token.Payload payloadInfo = Token.Payload.builder()
-					.credentialSubject(new JSONObject(claim))
-					.build();
-
-			// Header 생성
-			String header = createHeader(headerInfo);
+			/** Header 생성 */
+			String header = createHeader();
 			log.info("header = " + header);
 
-			// Payload 생성
-			String payload = createPayload(payloadInfo);
+			/** Payload 생성 */
+			String payload = createPayload(claims);
 			log.info("payload = " + payload);
 
-			// Signature 생성
-			String publicKey = Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded());
-			String signature = createSignatureForJwt(header, payload, publicKey);
+			/** Signature 생성 */
+			String privateKey = keyPairService.getPrivateKey();
+			String signature = createSignatureForJwt(header, payload, privateKey);
 			log.info("signature = " + signature);
 
+			/** Json Web Token 생성 */
 			String jwt = combineToken(header, payload, signature);
 			log.info("jwt = " + jwt);
+
 			return CreateTokenResponse.builder()
 					.resultMsg("Success")
 					.resultCode(String.valueOf(HttpStatus.OK.value()))
-					.claim(claim)
+					.claim(claims.getPublicClaims())
 					.jwt(jwt)
 					.build();
 
@@ -101,7 +73,7 @@ public class TokenSerivce {
 			return CreateTokenResponse.builder()
 					.resultMsg("Fail: " + e.getMessage())
 					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
-					.claim(claim)
+					.claim(claims.getPublicClaims())
 					.build();
 		} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException |
 				NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
@@ -110,12 +82,14 @@ public class TokenSerivce {
 			return CreateTokenResponse.builder()
 					.resultMsg("Fail" + e.getMessage())
 					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
-					.claim(claim)
+					.claim(claims.getPublicClaims())
 					.build();
 		}
 	}
 
-	public VerifyTokenResponse verifyToken(String token, String privateKey) {
+	public VerifyTokenResponse verifyToken(String token)
+			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+		String publicKey =keyPairService.getPublicKey();
 		try {
 			if (token == null || token.isEmpty()) {
 				throw new IllegalArgumentException("JWT is empty");
@@ -125,7 +99,7 @@ public class TokenSerivce {
 			Token tokenObject = parseToken(token);
 
 			// Decrypt Signature
-			String signature = rsaKeyGenerator.decryptPrvRSA(tokenObject.getSignature(), privateKey);
+			String signature = rsaKeyGenerator.decryptPubRSA(tokenObject.getSignature(), publicKey);
 
 			// 해시 비교를 통해 위변조 검증
 			if (signature.equals(tokenObject.getHeader() + tokenObject.getPayload())) {
@@ -171,14 +145,14 @@ public class TokenSerivce {
 
 		try {
 			byte[] decodedBytes = Base58.decode(tokenObject.getPayload());
-			String credentialSubject = ByteUtil.bytesToUtfString(decodedBytes);
-			if (Objects.isNull(credentialSubject) || credentialSubject.isEmpty()) {
+			String claims = ByteUtil.bytesToUtfString(decodedBytes);
+			if (Objects.isNull(claims) || claims.isEmpty()) {
 				throw new RuntimeException("Extracted credentialSubject is null or empty");
 			}
 			return ExtractClaimResponse.builder()
 					.resultMsg("Success")
 					.resultCode(String.valueOf(HttpStatus.OK.value()))
-					.claim(objectMapper.readValue(credentialSubject, Map.class))
+					.claim(objectMapper.readValue(claims, Claims.class))
 					.jwt(token)
 					.build();
 		} catch (IllegalArgumentException e) {
@@ -196,27 +170,48 @@ public class TokenSerivce {
 		}
 	}
 
+	public Claims setClaims(Map<String, String> Authentication) {
+		/**
+		 * TODO : Add default claims
+		 */
+		Claims.RegisteredClaims registeredClaims = Claims.RegisteredClaims.builder()
+				.build();
 
-	public String createHeader(Token.Header header) throws IOException {
-		String typ = header.getTyp();
-		String alg = header.getAlg();
+		Claims.PublicClaims publicClaims = Claims.PublicClaims.builder()
+				.build();
+
+		Claims.PrivateClaims privateClaims = Claims.PrivateClaims.builder()
+				.build();
+
+		return Claims.builder()
+				.registeredClaims(registeredClaims)
+				.publicClaims(publicClaims)
+				.privateClaims(privateClaims)
+				.build();
+	}
+
+	public String createHeader() throws IOException {
+		String typ = verifyProperties.getTyp();
+		String alg = verifyProperties.getAlg();
+
 		if (Objects.isNull(typ) || typ.isEmpty()
 				|| Objects.isNull(alg) || alg.isEmpty()) {
 			throw new RuntimeException("Header Info is null or empty");
 		}
 
+		// TODO: setHeader 정의 후 오버라이딩이 필요.
 		byte[] byteHeaderData = ByteUtil.stringToBytes(typ + alg);
 		String encHeader = Base58.encode(byteHeaderData);
 
 		return encHeader;
 	}
 
-	public String createPayload(Token.Payload payload) throws IOException {
-		String credentialSubject = String.valueOf(payload.getCredentialSubject());
-		if (Objects.isNull(credentialSubject) || credentialSubject.isEmpty()) {
+	public String createPayload(Claims claims) throws IOException {
+		String strClaims = String.valueOf(claims);
+		if (Objects.isNull(strClaims) || strClaims.isEmpty()) {
 			throw new RuntimeException("credentialSubject is null or empty");
 		}
-		byte[] bytePayloadData = ByteUtil.stringToBytes(credentialSubject);
+		byte[] bytePayloadData = ByteUtil.stringToBytes(strClaims);
 		String encPayload = Base58.encode(bytePayloadData);
 
 		return encPayload;
@@ -230,11 +225,12 @@ public class TokenSerivce {
 		return signature;
 	}
 
-	public String createSignatureForJwt(String header, String payload, String publicKey)
+	public String createSignatureForJwt(String header, String payload, String privateKey)
 			throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
-			InvalidKeySpecException, BadPaddingException, InvalidKeyException {
-		String strData = header + payload;
-		String signature = rsaKeyGenerator.encryptPubRSA(strData, publicKey);
+			InvalidKeySpecException, BadPaddingException, InvalidKeyException, UnsupportedEncodingException {
+		String rsaEncHeader = rsaKeyGenerator.encryptPrvRSA(header, privateKey);
+		String rsaEncPayload = rsaKeyGenerator.encryptPrvRSA(payload, privateKey);
+		String signature = rsaEncHeader + rsaEncPayload;
 
 		return signature;
 	}

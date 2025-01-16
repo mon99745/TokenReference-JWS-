@@ -3,7 +3,6 @@ package com.security.jsonwebtoken.controller;
 import com.security.jsonwebtoken.message.CreateTokenResponse;
 import com.security.jsonwebtoken.message.ExtractClaimResponse;
 import com.security.jsonwebtoken.message.VerifyTokenResponse;
-import com.security.jsonwebtoken.service.KeyPairService;
 import com.security.jsonwebtoken.service.TokenSerivce;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,28 +26,27 @@ import java.util.Map;
 public class TokenRestController {
 	public static final String TAG = "JWT Manager API";
 	public static final String PATH = "/api/v1";
-	protected final KeyPairService keyPairService;
 	protected final TokenSerivce tokenSerivce;
 
 
 	/**
 	 * 토큰 발행
 	 *
-	 * @param claim Claim to include in JWT
+	 * @param Authentication to include in JWT
 	 * @return
 	 */
 	@PostMapping("createToken")
 	@Operation(summary = "1. 토큰(JWT) 발행")
-	public CreateTokenResponse createToken(@RequestBody Map<String, String> claim){
-		log.info("Request Claims : ", claim);
+	public CreateTokenResponse createToken(@RequestBody Map<String, String> Authentication){
+		log.info("Request Auth-Information : ", Authentication);
 
-		return tokenSerivce.createJwt(claim);
+		return tokenSerivce.createJwt(Authentication);
 	}
 
 	/**
 	 * 토큰 검증
 	 *
-	 * @param request Request with token
+	 * @param request Request with JWT
 	 * @return
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
@@ -60,14 +58,13 @@ public class TokenRestController {
 			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 		log.info("Request JWT : " + request.get("jwt"));
 
-		String privateKey = keyPairService.getPrivateKey();
-		return tokenSerivce.verifyToken(request.get("jwt"), privateKey);
+		return tokenSerivce.verifyToken(request.get("jwt"));
 	}
 
 	/**
 	 * 토큰에서 클레임 추출
 	 *
-	 * @param request Request with token
+	 * @param request Request with JWT
 	 * @return
 	 */
 	@PostMapping("extractClaim")

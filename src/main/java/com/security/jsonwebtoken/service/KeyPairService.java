@@ -34,7 +34,11 @@ public class KeyPairService {
 		return strKeymap;
 	}
 
-	public String getPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+	protected String getPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 		return Base58.encode(rsaKeyGenerator.getPrivateKey().getEncoded());
+	}
+
+	protected String getPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+		return Base58.encode(rsaKeyGenerator.getPublicKey().getEncoded());
 	}
 }

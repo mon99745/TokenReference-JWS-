@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import org.json.JSONObject;
 
 /**
- * Token(JWT)
+ * Json Web Token, JWT
  */
 @Getter
 @AllArgsConstructor
@@ -27,6 +27,6 @@ public class Token {
 	@Getter
 	@Builder
 	public static class Payload {
-		private JSONObject credentialSubject;
+		private JSONObject claims;
 	}
 }
