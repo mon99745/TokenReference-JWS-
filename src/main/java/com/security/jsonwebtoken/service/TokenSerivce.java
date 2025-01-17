@@ -9,6 +9,7 @@ import com.security.jsonwebtoken.model.Claims;
 import com.security.jsonwebtoken.model.Token;
 import com.security.jsonwebtoken.util.ByteUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.security.jsonwebtoken.util.HashUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bitcoinj.core.Base58;
@@ -21,9 +22,12 @@ import javax.crypto.NoSuchPaddingException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -38,28 +42,32 @@ public class TokenSerivce {
 	public CreateTokenResponse createJwt(Map<String, String> Authentication) {
 		return this.createJwt(setClaims(Authentication));
 	}
+
 	public CreateTokenResponse createJwt(Claims claims) {
 		try {
 			if (claims == null) {
 				throw new IllegalArgumentException("Claim is empty");
 			}
+			log.info("Claim:" + claims);
 
 			/** Header 생성 */
 			String header = createHeader();
-			log.info("header = " + header);
+			log.info("header = {}, header byte = {}", header, header.getBytes().length);
 
 			/** Payload 생성 */
-			String payload = createPayload(claims);
-			log.info("payload = " + payload);
+			List<String> payload = createPayload(claims);
+			log.info("payload = {}", payload);
+			payload.forEach(pl ->
+					log.info("Byte size: {}", pl.getBytes(StandardCharsets.UTF_8).length));
 
 			/** Signature 생성 */
 			String privateKey = keyPairService.getPrivateKey();
-			String signature = createSignatureForJwt(header, payload, privateKey);
-			log.info("signature = " + signature);
+			String signature = createSignature(header, payload, privateKey);
+			log.info("signature = {}, signature byte = {}", signature, signature.getBytes().length);
 
 			/** Json Web Token 생성 */
-			String jwt = combineToken(header, payload, signature);
-			log.info("jwt = " + jwt);
+			String jwt = combineToken(header, String.join("", payload), signature);
+			log.info("jwt = {}, jwt byte = {}", jwt, jwt.getBytes().length);
 
 			return CreateTokenResponse.builder()
 					.resultMsg("Success")
@@ -76,11 +84,11 @@ public class TokenSerivce {
 					.claim(claims.getPublicClaims())
 					.build();
 		} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException |
-				NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
-				InvalidKeyException e) {
+				 NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
+				 InvalidKeyException e) {
 			log.error("JWT 생성 중 예외 발생: ", e);
 			return CreateTokenResponse.builder()
-					.resultMsg("Fail" + e.getMessage())
+					.resultMsg("Fail: " + e.getMessage())
 					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 					.claim(claims.getPublicClaims())
 					.build();
@@ -89,7 +97,7 @@ public class TokenSerivce {
 
 	public VerifyTokenResponse verifyToken(String token)
 			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-		String publicKey =keyPairService.getPublicKey();
+		String publicKey = keyPairService.getPublicKey();
 		try {
 			if (token == null || token.isEmpty()) {
 				throw new IllegalArgumentException("JWT is empty");
@@ -127,7 +135,7 @@ public class TokenSerivce {
 				 InvalidKeyException e) {
 			log.error("JWT 검증 중 예외 발생: ", e);
 			return VerifyTokenResponse.builder()
-					.resultMsg("Fail:" + "JWT 검증 실패 :" + e.getMessage())
+					.resultMsg("Fail: " + "JWT 검증 실패 :" + e.getMessage())
 					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 					.jwt(token)
 					.build();
@@ -206,15 +214,23 @@ public class TokenSerivce {
 		return encHeader;
 	}
 
-	public String createPayload(Claims claims) throws IOException {
-		String strClaims = String.valueOf(claims);
+	public List<String> createPayload(Claims claims) throws IOException {
+		List<String> strClaims = new ArrayList<>();
+		strClaims.add(String.valueOf(claims.getRegisteredClaims()));
+		strClaims.add(String.valueOf(claims.getPublicClaims()));
+		strClaims.add(String.valueOf(claims.getPrivateClaims()));
+
 		if (Objects.isNull(strClaims) || strClaims.isEmpty()) {
 			throw new RuntimeException("credentialSubject is null or empty");
 		}
-		byte[] bytePayloadData = ByteUtil.stringToBytes(strClaims);
-		String encPayload = Base58.encode(bytePayloadData);
 
-		return encPayload;
+		List<String> payload = new ArrayList<>();
+		for (String claim : strClaims) {
+			byte[] bytePayloadData = ByteUtil.stringToBytes(claim);
+			payload.add(Base58.encode(bytePayloadData));
+		}
+
+		return payload;
 	}
 
 	public String createSignature(String payload, String publicKey)
@@ -225,12 +241,16 @@ public class TokenSerivce {
 		return signature;
 	}
 
-	public String createSignatureForJwt(String header, String payload, String privateKey)
+	public String createSignature(String header, List<String> payload, String privateKey)
 			throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
 			InvalidKeySpecException, BadPaddingException, InvalidKeyException, UnsupportedEncodingException {
 		String rsaEncHeader = rsaKeyGenerator.encryptPrvRSA(header, privateKey);
-		String rsaEncPayload = rsaKeyGenerator.encryptPrvRSA(payload, privateKey);
-		String signature = rsaEncHeader + rsaEncPayload;
+		StringBuilder rsaEncPayload = new StringBuilder();
+		for (String pl : payload) {
+			// RSA encryption is limited to a byte size of 245
+			rsaEncPayload.append(rsaKeyGenerator.encryptPrvRSA(pl, privateKey));
+		}
+		String signature = HashUtil.sha256(rsaEncHeader + rsaEncPayload);
 
 		return signature;
 	}
