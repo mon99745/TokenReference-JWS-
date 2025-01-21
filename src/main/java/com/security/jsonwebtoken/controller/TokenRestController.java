@@ -26,39 +26,36 @@ import java.util.Map;
 public class TokenRestController {
 	public static final String TAG = "JWT Manager API";
 	public static final String PATH = "/api/v1";
+	private static final String JWT_FIELD_NAME = "jwt";
 	protected final TokenSerivce tokenSerivce;
 
 
 	/**
-	 * 토큰 발행
+	 * 1. 토큰 발행
 	 *
 	 * @param requestClaim to include in JWT
-	 * @return
+	 * @return CreateTokenResponse
 	 */
 	@PostMapping("createToken")
 	@Operation(summary = "1. 토큰(JWT) 발행")
-	public CreateTokenResponse createToken(@RequestBody Map<String, String> requestClaim){
+	public CreateTokenResponse createToken(@RequestBody Map<String, String> requestClaim) {
 		log.info("Request Claim : ", requestClaim);
 
 		return tokenSerivce.createJwt(requestClaim);
 	}
 
 	/**
-	 * 토큰 검증
+	 * 2. 토큰 검증
 	 *
 	 * @param request Request with JWT
-	 * @return
-	 * @throws IOException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
+	 * @return VerifyTokenResponse
 	 */
 	@PostMapping("verifyToken")
 	@Operation(summary = "2. 토큰(JWT) 검증")
-	public VerifyTokenResponse verifyToken(@RequestBody Map<String, String> request)
-			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-		log.info("Request JWT : " + request.get("jwt"));
+	public VerifyTokenResponse verifyToken(@RequestBody Map<String, String> request) {
+		log.info("Request JWT : " + request.get(JWT_FIELD_NAME));
 
-		return tokenSerivce.verifyToken(request.get("jwt"));
+		return tokenSerivce.verifyJwt(request.get(JWT_FIELD_NAME));
 	}
 
 	/**
@@ -70,8 +67,8 @@ public class TokenRestController {
 	@PostMapping("extractClaim")
 	@Operation(summary = "3. 토큰(JWT)에서 클레임 추출")
 	public ExtractClaimResponse extractClaim(@RequestBody Map<String, String> request) {
-		log.info("Request JWT : " + request.get("jwt"));
+		log.info("Request JWT : " + request.get(JWT_FIELD_NAME));
 
-		return tokenSerivce.extractCredentialSubject(request.get("jwt"));
+		return tokenSerivce.extractCredentialSubject(request.get(JWT_FIELD_NAME));
 	}
 }

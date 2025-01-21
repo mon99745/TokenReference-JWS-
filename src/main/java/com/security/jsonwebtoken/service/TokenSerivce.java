@@ -43,7 +43,7 @@ public class TokenSerivce {
 	 * Re-entry after Claim initialization
 	 *
 	 * @param requestClaim to include in JWT
-	 * @return
+	 * @return CreateTokenResponse
 	 */
 	public CreateTokenResponse createJwt(Map<String, String> requestClaim) {
 		return this.createJwt(setClaims(requestClaim));
@@ -52,8 +52,8 @@ public class TokenSerivce {
 	/**
 	 * Json Web Token 생성
 	 *
-	 * @param claims to include in JWT
- 	 * @return
+	 * @param claims 인가 필수 정보
+	 * @return CreateTokenResponse
 	 */
 	public CreateTokenResponse createJwt(Claims claims) {
 		try {
@@ -66,10 +66,8 @@ public class TokenSerivce {
 			log.info("header = {}, header byte = {}", header, header.getBytes().length);
 
 			/** Payload 생성 */
-			List<String> payload = createPayload(claims);
-			log.info("payload = {}", payload);
-			payload.forEach(pl ->
-					log.info("Byte size: {}", pl.getBytes(StandardCharsets.UTF_8).length));
+			String payload = createPayload(claims);
+			log.info("payload = {}, payload byte = {}", payload, payload.getBytes().length);
 
 			/** VerifyCode 생성 */
 			String verifyCode = setVerifyCode(header, payload);
@@ -110,22 +108,32 @@ public class TokenSerivce {
 		}
 	}
 
-	public VerifyTokenResponse verifyToken(String token)
-			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-		String publicKey = keyPairService.getPublicKey();
+
+	/**
+	 * Json Web Token 검증
+	 *
+	 * @param token 검증 대상 토큰
+	 * @return VerifyTokenResponse
+	 */
+	public VerifyTokenResponse verifyJwt(String token) {
 		try {
 			if (token == null || token.isEmpty()) {
 				throw new IllegalArgumentException("JWT is empty");
 			}
 
-			// Token Object Parsing
+			/** 토큰 구조 분류 */
 			Token tokenObject = parseToken(token);
 
-			// Decrypt Signature
-			String signature = rsaKeyGenerator.decryptPubRSA(tokenObject.getSignature(), publicKey);
+			/** VerifyCode 생성 */
+			String newVerifyCode = setVerifyCode(tokenObject.getHeader(), tokenObject.getPayload());
+			log.info("verifyCode = {}, verifyCode byte = {}", newVerifyCode, newVerifyCode.getBytes().length);
 
-			// 해시 비교를 통해 위변조 검증
-			if (signature.equals(tokenObject.getHeader() + tokenObject.getPayload())) {
+			/** 서명 검증(비대칭키 복호화) */
+			String publicKey = keyPairService.getPublicKey();
+			String signedVerifyCode = rsaKeyGenerator.decryptPubRSA(tokenObject.getSignature(), publicKey);
+
+			/** 위변조 검증(해시 비교) */
+			if (newVerifyCode.equals(signedVerifyCode)) {
 				return VerifyTokenResponse.builder()
 						.resultMsg("Success")
 						.resultCode(String.valueOf(HttpStatus.OK.value()))
@@ -193,7 +201,7 @@ public class TokenSerivce {
 		}
 	}
 
-	public Claims setClaims(Map<String, String> Authentication) {
+	public Claims setClaims(Map<String, String> requestClaim) {
 		/**
 		 * TODO : Add default claims
 		 */
@@ -229,7 +237,7 @@ public class TokenSerivce {
 		return encHeader;
 	}
 
-	public List<String> createPayload(Claims claims) throws IOException {
+	public String createPayload(Claims claims) throws IOException {
 		List<String> strClaims = new ArrayList<>();
 		strClaims.add(String.valueOf(claims.getRegisteredClaims()));
 		strClaims.add(String.valueOf(claims.getPublicClaims()));
@@ -239,22 +247,16 @@ public class TokenSerivce {
 			throw new RuntimeException("credentialSubject is null or empty");
 		}
 
-		List<String> payload = new ArrayList<>();
-		for (String claim : strClaims) {
-			byte[] bytePayloadData = ByteUtil.stringToBytes(claim);
-			payload.add(Base58.encode(bytePayloadData));
-		}
+		byte[] bytePayloadData = ByteUtil.stringToBytes(String.join("", strClaims));
+		String payload = Base58.encode(bytePayloadData);
 
 		return payload;
 	}
 
-	public String setVerifyCode(String header, List<String> payload) {
-		StringBuilder strPayload = new StringBuilder();
-		for (String pl : payload) {
-			strPayload.append(pl);
-		}
-		return HashUtil.sha256(header + strPayload);
+	public String setVerifyCode(String header, String payload) {
+		return HashUtil.sha256(header + payload);
 	}
+
 
 	public String createSignature(String verifyCode, String privateKey)
 			throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
