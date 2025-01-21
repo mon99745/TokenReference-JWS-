@@ -9,9 +9,9 @@ the ultimate goal:
 - [v1.0.0](./RELEASENOTE.md#v100-2024-01-30-)
 
 # Process
-  ![](doc/process-0001.jpg)
-  ![](doc/process-0002.jpg)
-  ![](doc/process-0003.jpg)
+  ![](doc/README_20250121_page-0001.jpg)
+  ![](doc/README_20250121_page-0002.jpg)
+  ![](doc/README_20250121_page-0003.jpg)
 
 # Guides
 1. HTTP 통신 방식 (API 호출)
