@@ -39,16 +39,27 @@ public class TokenSerivce {
 	protected final VerifyProperties verifyProperties;
 	protected final KeyPairService keyPairService;
 
-	public CreateTokenResponse createJwt(Map<String, String> Authentication) {
-		return this.createJwt(setClaims(Authentication));
+	/**
+	 * Re-entry after Claim initialization
+	 *
+	 * @param requestClaim to include in JWT
+	 * @return
+	 */
+	public CreateTokenResponse createJwt(Map<String, String> requestClaim) {
+		return this.createJwt(setClaims(requestClaim));
 	}
 
+	/**
+	 * Json Web Token 생성
+	 *
+	 * @param claims to include in JWT
+ 	 * @return
+	 */
 	public CreateTokenResponse createJwt(Claims claims) {
 		try {
 			if (claims == null) {
 				throw new IllegalArgumentException("Claim is empty");
 			}
-			log.info("Claim:" + claims);
 
 			/** Header 생성 */
 			String header = createHeader();
@@ -60,9 +71,13 @@ public class TokenSerivce {
 			payload.forEach(pl ->
 					log.info("Byte size: {}", pl.getBytes(StandardCharsets.UTF_8).length));
 
+			/** VerifyCode 생성 */
+			String verifyCode = setVerifyCode(header, payload);
+			log.info("verifyCode = {}, verifyCode byte = {}", verifyCode, verifyCode.getBytes().length);
+
 			/** Signature 생성 */
 			String privateKey = keyPairService.getPrivateKey();
-			String signature = createSignature(header, payload, privateKey);
+			String signature = createSignature(verifyCode, privateKey);
 			log.info("signature = {}, signature byte = {}", signature, signature.getBytes().length);
 
 			/** Json Web Token 생성 */
@@ -233,26 +248,19 @@ public class TokenSerivce {
 		return payload;
 	}
 
-	public String createSignature(String payload, String publicKey)
-			throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
-			InvalidKeySpecException, BadPaddingException, InvalidKeyException {
-		String signature = rsaKeyGenerator.encryptPubRSA(payload, publicKey);
-
-		return signature;
+	public String setVerifyCode(String header, List<String> payload) {
+		StringBuilder strPayload = new StringBuilder();
+		for (String pl : payload) {
+			strPayload.append(pl);
+		}
+		return HashUtil.sha256(header + strPayload);
 	}
 
-	public String createSignature(String header, List<String> payload, String privateKey)
+	public String createSignature(String verifyCode, String privateKey)
 			throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
 			InvalidKeySpecException, BadPaddingException, InvalidKeyException, UnsupportedEncodingException {
-		String rsaEncHeader = rsaKeyGenerator.encryptPrvRSA(header, privateKey);
-		StringBuilder rsaEncPayload = new StringBuilder();
-		for (String pl : payload) {
-			// RSA encryption is limited to a byte size of 245
-			rsaEncPayload.append(rsaKeyGenerator.encryptPrvRSA(pl, privateKey));
-		}
-		String signature = HashUtil.sha256(rsaEncHeader + rsaEncPayload);
 
-		return signature;
+		return rsaKeyGenerator.encryptPrvRSA(verifyCode, privateKey);
 	}
 
 	public String combineToken(String header, String payload, String signature) {

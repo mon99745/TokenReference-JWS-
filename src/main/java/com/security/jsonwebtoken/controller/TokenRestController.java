@@ -32,15 +32,15 @@ public class TokenRestController {
 	/**
 	 * 토큰 발행
 	 *
-	 * @param Authentication to include in JWT
+	 * @param requestClaim to include in JWT
 	 * @return
 	 */
 	@PostMapping("createToken")
 	@Operation(summary = "1. 토큰(JWT) 발행")
-	public CreateTokenResponse createToken(@RequestBody Map<String, String> Authentication){
-		log.info("Request Auth-Information : ", Authentication);
+	public CreateTokenResponse createToken(@RequestBody Map<String, String> requestClaim){
+		log.info("Request Claim : ", requestClaim);
 
-		return tokenSerivce.createJwt(Authentication);
+		return tokenSerivce.createJwt(requestClaim);
 	}
 
 	/**
