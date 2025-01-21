@@ -2,6 +2,7 @@
 이 프로젝트는 io.jsonwebtoken:jjwt-api 라이브러리를 대체하여 JwtProvider 역할을 수행하는 목적으로 작성된 결과물이며,
 Json Web Token을 커스텀 발행 및 검증하여 관련 카테고리 개발의 시간 비용을 절감하고, 프로젝트의 소스와 설정 파일의 규격을 통일하여 코드의 품질과 가독성 향상하기 위한 목표로 증가 시키기 위한 목표로 추진한다.
 
+
 The ultimate goal:
 * Json Web Token 발급에 필요한 라이브러리 <u>`io.jsonwebtoken:jjwt-*` 를 대체 가능</u>하도록 한다.
 * Json Web Token 발급과 검증에 최소한의 정보를 담아 커스텀 사용성을 확장하고, 이를 용이하도록 한다.
@@ -147,3 +148,4 @@ The ultimate goal:
     "jwt": "e29JzDyi.mwVQotk9DFqLwPpLw8TutiwiX6x4XQUrYtngFyoC7VPVs1txq54NGuzWbHt12rGbA6nnetYSnAinJRpVRzjyXj3GogWjwb2FMeYPshrZFhpaVvJFy2g39FcNusGHoHH5uBcmdEvme6g2crSuNKXbtsaREbakFtGu4oCk7CuVvz1XoAoc43Lc1hAbdU2VReEF7wxsKYQQLk.Ou+L/qyvpu8ssLpZ+qtDOYRQvHEcT/Qvq86KPapmXugS3SvZPnTnZdjzAB+Kcfd+bZX+OjXMBprUQHId25oD5OVK9XVq+3p839qpiJrbdYx6jWG7R5FhlQzQsH2CZezizUEkUlpc5Q38CNN3eJEZAOkO0TXhyMSyUkKyrMVDdVcLdJEzEXTVhwIICfG/+JCziI7/ijqBfSlGE4yB+14tfV2Ks2LdjfXf65zphz1Wm43oP2jzPFvreKta1twUKvhzKLAiYsxMD+kuL14zOJvYQJlnGozZG4rJT8qZUEVMglbCuoeqmXzmAUSGOcg6uaIN2/uPFT4oOgkmAkC5bvKw2g=="
 }
 ```
+
