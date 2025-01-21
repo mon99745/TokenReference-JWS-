@@ -22,12 +22,9 @@ import javax.crypto.NoSuchPaddingException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -85,7 +82,7 @@ public class TokenSerivce {
 			return CreateTokenResponse.builder()
 					.resultMsg("Success")
 					.resultCode(String.valueOf(HttpStatus.OK.value()))
-					.claim(claims.getPublicClaims())
+					.claims(claims.getPublicClaims())
 					.jwt(jwt)
 					.build();
 
@@ -94,7 +91,7 @@ public class TokenSerivce {
 			return CreateTokenResponse.builder()
 					.resultMsg("Fail: " + e.getMessage())
 					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
-					.claim(claims.getPublicClaims())
+					.claims(claims.getPublicClaims())
 					.build();
 		} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException |
 				 NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
@@ -103,7 +100,7 @@ public class TokenSerivce {
 			return CreateTokenResponse.builder()
 					.resultMsg("Fail: " + e.getMessage())
 					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
-					.claim(claims.getPublicClaims())
+					.claims(claims.getPublicClaims())
 					.build();
 		}
 	}
@@ -165,25 +162,32 @@ public class TokenSerivce {
 		}
 	}
 
-	public ExtractClaimResponse extractCredentialSubject(String token) {
-		if (token == null || token.isEmpty()) {
-			throw new IllegalArgumentException("JWT is empty");
-		}
-
-		// Token Object Parsing
-		Token tokenObject = parseToken(token);
-		ObjectMapper objectMapper = new ObjectMapper();
-
+	/**
+	 * Json Web Token 정보 추출
+	 *
+	 * @param token 정보 추출 대상 토큰
+	 * @return ExtractClaimResponse
+	 */
+	public ExtractClaimResponse extractClaimToJwt(String token) {
 		try {
-			byte[] decodedBytes = Base58.decode(tokenObject.getPayload());
-			String claims = ByteUtil.bytesToUtfString(decodedBytes);
-			if (Objects.isNull(claims) || claims.isEmpty()) {
-				throw new RuntimeException("Extracted credentialSubject is null or empty");
+			if (token == null || token.isEmpty()) {
+				throw new IllegalArgumentException("JWT is empty");
 			}
+
+			/** 토큰 구조 분류 */
+			Token tokenObject = parseToken(token);
+
+			/** 서명 검증(비대칭키 복호화) */
+			String publicKey = keyPairService.getPublicKey();
+			rsaKeyGenerator.decryptPubRSA(tokenObject.getSignature(), publicKey);
+
+			/** 클레임 조회 */
+			Object claims = readClaim(tokenObject.getPayload());
+
 			return ExtractClaimResponse.builder()
 					.resultMsg("Success")
 					.resultCode(String.valueOf(HttpStatus.OK.value()))
-					.claim(objectMapper.readValue(claims, Claims.class))
+					.claims(claims)
 					.jwt(token)
 					.build();
 		} catch (IllegalArgumentException e) {
@@ -192,8 +196,10 @@ public class TokenSerivce {
 					.resultMsg("Fail: " + "Claim 추출 실패 : " + e.getMessage())
 					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
 					.build();
-		} catch (IOException e) {
-			log.error("Claim 추출 실패 : ", e);
+		} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException |
+				 NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
+				 InvalidKeyException e) {
+			log.error("JWT 검증 중 예외 발생: ", e);
 			return ExtractClaimResponse.builder()
 					.resultMsg("Fail: " + "Claim 추출 실패 :" + e.getMessage())
 					.resultCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
@@ -202,22 +208,20 @@ public class TokenSerivce {
 	}
 
 	public Claims setClaims(Map<String, String> requestClaim) {
-		/**
-		 * TODO : Add default claims
-		 */
-		Claims.RegisteredClaims registeredClaims = Claims.RegisteredClaims.builder()
+		Claims.RegisteredClaim registeredClaim = Claims.RegisteredClaim.builder()
+				.issuer("security.com") // 발급자
+				.subject("Json Web Token") // 주제
+				.expiration("2025-01-31T23:59:59Z") // 만료 시간 (ISO-8601 형식)
+				.issuedAt("2025-01-21T10:00:00Z") // 발급 시간 (ISO-8601 형식)
 				.build();
 
-		Claims.PublicClaims publicClaims = Claims.PublicClaims.builder()
-				.build();
-
-		Claims.PrivateClaims privateClaims = Claims.PrivateClaims.builder()
+		Claims.PublicClaim publicClaim = Claims.PublicClaim.builder()
+				.publicClaim(requestClaim)
 				.build();
 
 		return Claims.builder()
-				.registeredClaims(registeredClaims)
-				.publicClaims(publicClaims)
-				.privateClaims(privateClaims)
+				.registeredClaims(registeredClaim)
+				.publicClaims(publicClaim)
 				.build();
 	}
 
@@ -238,16 +242,9 @@ public class TokenSerivce {
 	}
 
 	public String createPayload(Claims claims) throws IOException {
-		List<String> strClaims = new ArrayList<>();
-		strClaims.add(String.valueOf(claims.getRegisteredClaims()));
-		strClaims.add(String.valueOf(claims.getPublicClaims()));
-		strClaims.add(String.valueOf(claims.getPrivateClaims()));
-
-		if (Objects.isNull(strClaims) || strClaims.isEmpty()) {
-			throw new RuntimeException("credentialSubject is null or empty");
-		}
-
-		byte[] bytePayloadData = ByteUtil.stringToBytes(String.join("", strClaims));
+		ObjectMapper objectMapper = new ObjectMapper();
+		String strClaims = objectMapper.writeValueAsString(claims);
+		byte[] bytePayloadData = ByteUtil.stringToBytes(strClaims);
 		String payload = Base58.encode(bytePayloadData);
 
 		return payload;
@@ -267,6 +264,19 @@ public class TokenSerivce {
 
 	public String combineToken(String header, String payload, String signature) {
 		return header + "." + payload + "." + signature;
+	}
+
+	private Object readClaim(String payload) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		byte[] decodedBytes = Base58.decode(payload);
+		try {
+			String strClaim = ByteUtil.bytesToUtfString(decodedBytes);
+			Object json = objectMapper.readTree(strClaim);
+
+			return json;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public Token parseToken(String token) {

@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class CreateTokenResponse {
-	private Claims.PublicClaims claim;
+	private Claims.PublicClaim claims;
 	private String jwt;
 	private String resultCode;
 	private String resultMsg;

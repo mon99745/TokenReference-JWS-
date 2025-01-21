@@ -59,16 +59,16 @@ public class TokenRestController {
 	}
 
 	/**
-	 * 토큰에서 클레임 추출
+	 * 3. 토큰 정보 추출
 	 *
 	 * @param request Request with JWT
-	 * @return
+	 * @return ExtractClaimResponse
 	 */
 	@PostMapping("extractClaim")
 	@Operation(summary = "3. 토큰(JWT)에서 클레임 추출")
-	public ExtractClaimResponse extractClaim(@RequestBody Map<String, String> request) {
+	public ExtractClaimResponse extractClaimToJwt(@RequestBody Map<String, String> request) {
 		log.info("Request JWT : " + request.get(JWT_FIELD_NAME));
 
-		return tokenSerivce.extractCredentialSubject(request.get(JWT_FIELD_NAME));
+		return tokenSerivce.extractClaimToJwt(request.get(JWT_FIELD_NAME));
 	}
 }

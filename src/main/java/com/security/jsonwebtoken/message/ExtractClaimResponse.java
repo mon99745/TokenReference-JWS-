@@ -1,6 +1,5 @@
 package com.security.jsonwebtoken.message;
 
-import com.security.jsonwebtoken.model.Claims;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,7 +7,7 @@ import lombok.Getter;
 @Builder
 public class ExtractClaimResponse {
 	private String jwt;
-	private Claims claim;
+	private Object claims;
 	private String resultCode;
 	private String resultMsg;
 }
