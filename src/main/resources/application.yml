@@ -1,10 +1,46 @@
 ### 서버 관리
 server:
-### 내장 WAS 관리
-  port: 8080
+  ### 내장 WAS 관리
+  port: 28080
 
-### 키 관리
-keyPair:
+##### 문서 관리
+springdoc:
+  swagger-ui:
+    tagsSorter: alpha
+    operationsSorter: alpha
+    docExpansion: none
+    path: /api
+
+### 토큰 클레임 관리
+claims:
+  # 등록된 클레임 (Registered Claims)
+  registered-claims:
+#    issuer: authServer      # 발급자 (iss)
+#    subject: 1234567890     # 주제 (sub)
+#    audience: myApp         # 수신자 (aud)
+#    expiration: 1615381280  # 만료 시간 (exp) - Unix 타임스탬프
+#    issuedAt: 1615378880    # 발급 시간 (iat) - Unix 타임스탬프
+#    notBefore: 1615379980   # 사용 가능 시작 시간 (nbf) - Unix 타임스탬프
+#    jwtId: abc123           # JWT 고유 ID (jti)
+
+  # 공개 클레임 (Public Claims)
+  public-claims:
+#    role: admin                  # 사용자 역할 (role)
+#    username: jiwon_moon           # 사용자 이름 (username)
+#    email: jiwon.moon@example.com  # 사용자 이메일 (email)
+#    scope: read write            # 권한 범위 (scope)
+
+  # 비공개 클레임 (Private Claims)
+  private-claims:
+#    customerId: 98765          # 고객 ID (customerId)
+#    tenantId: companyABC       # 테넌트 ID (tenantId)
+#    sessionId: session123      # 세션 ID (sessionId)
+#    customClaim: customValue   # 사용자 정의 클레임 (customClaim)
+
+
+### 토큰 검증 관리
+verify:
   path: ./files/
-  algorithm: RSA
   keySize: 2048
+  typ: JWT
+  alg: RSA
