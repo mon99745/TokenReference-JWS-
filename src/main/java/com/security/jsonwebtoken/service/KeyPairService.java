@@ -20,6 +20,11 @@ import java.util.Map;
 public class KeyPairService {
 	protected final RsaKeyGenerator rsaKeyGenerator;
 
+	/**
+	 * 키페어 생성
+	 * @param keyPair
+	 * @return
+	 */
 	public Map<String, Object> createKeyPair(Map<String, Object> keyPair) {
 		Map<String, Object> strKeymap = new HashMap<>();
 
