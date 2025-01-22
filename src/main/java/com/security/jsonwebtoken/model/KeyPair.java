@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class KeyPair {
 	/**
-	 * 공개키
+	 * 공개키(publicKey)
 	 */
 	@Schema(description = "공개키", example = "2TuPVgMCHJy5atawrsADEzjP7MCVbyyCA89UW6Wvjp9HrAwUmX56Fo9MPtUxwPxdw6MEYPF" +
 			"ipqnp9pUUc1GRerR1UHTh843VB5ghkwYzYixzQ4jw4L6b1CQNWcSBRpYEHHr8PUgqkvYvJMUigQ18FvaqmWn8tMZCSwaFZK4MFSUyXPN" +
@@ -25,7 +25,7 @@ public class KeyPair {
 	protected String publicKey;
 
 	/**
-	 * 개인키
+	 * 개인키(privateKey)
 	 */
 	@SuppressWarnings("LineLength")
 	@Schema(description = "개인키",
